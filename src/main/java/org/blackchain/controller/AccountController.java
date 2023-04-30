@@ -32,6 +32,8 @@ public class AccountController {
         EtherScanApi api = new EtherScanApi(apiKey);
         Balance balance = api.account().balance(address);
 
+        api.account().balance(address);
+
         return ResponseEntity.ok().body(balance.getEther().toString());
 
     }

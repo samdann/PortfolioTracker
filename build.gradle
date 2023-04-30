@@ -18,15 +18,15 @@ configurations {
         extendsFrom annotationProcessor
     }
 
-    all {
+    configureEach {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
 }
 
 repositories {
     mavenCentral()
-    jcenter()
     maven { url "https://artifacts.consensys.net/public/maven/maven/" }
+    maven { url "https://plugins.gradle.org/m2/" }
     maven { url "https://splunk.jfrog.io/splunk/ext-releases-local" }
     maven { url "https://hyperledger.jfrog.io/artifactory/besu-maven/" }
     maven { url "https://dl.cloudsmith.io/public/consensys/quorum-mainnet-launcher/maven/" }
@@ -52,7 +52,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     //implementation 'io.github.microutils:kotlin-logging:1.6.10'
-    //implementation 'org.slf4j:slf4j-simple:1.8.0-beta2'
+    implementation 'org.slf4j:slf4j-simple:2.0.7'
 
     implementation 'de.codecentric:spring-boot-admin-starter-client'
 
@@ -78,9 +78,12 @@ dependencies {
     implementation 'com.github.goodforgod:java-etherscan-api:1.2.1'
 
     // Web3j Library
-    implementation 'org.web3j:core:4.9.4'
-    implementation 'org.web3j:web3j-evm:4.9.4'
+    implementation 'org.web3j:core:4.9.8'
+    implementation 'org.web3j:web3j-evm:4.9.8'
     implementation 'org.hyperledger.besu.internal:core:21.7.2'
+
+
+    implementation 'net.consensys.services:quorum-mainnet-launcher:1.0.2-20210226.084808-2'
 
 
 }
