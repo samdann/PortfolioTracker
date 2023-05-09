@@ -17,12 +17,16 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-
     implementation 'javax.servlet:javax.servlet-api:4.0.1'
 
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
+    //Etherscan
+    implementation 'com.github.goodforgod:java-etherscan-api:1.2.1'
+
+    //web3j
+    implementation 'org.web3j:core:4.9.8'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
