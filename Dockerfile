@@ -1,17 +1,17 @@
-FROM openjdk:8-jdk-alpine
-ENV APP_HOME=/usr/app/
-WORKDIR $APP_HOME
-COPY build.gradle settings.gradle $APP_HOME
-
-COPY gradle $APP_HOME/gradle
-COPY --chown=gradle:gradle . /home/gradle/src
-USER root
-RUN chown -R gradle /home/gradle/src
-
-RUN gradle build || return 0
+#build
+FROM gradle:latest AS BUILD
+WORKDIR /usr/app/
 COPY . .
 RUN gradle clean build
 
-#EXPOSE 8080
-#COPY build/libs/*SNAPSHOT.jar app.jar
-#ENTRYPOINT ["java","-jar","/app.jar"]
+
+#Package
+FROM openjdk:8-jdk-alpine
+ENV JAR_NAME=PortfolioTracker-1.0-SNAPSHOT.jar
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+COPY --from=BUILD $APP_HOME .
+EXPOSE 8080
+ENTRYPOINT exec java -jar $APP_HOME/build/libs/$JAR_NAME
+
+
