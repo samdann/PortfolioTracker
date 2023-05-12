@@ -32,7 +32,7 @@ on:
 
 env:
   AWS_REGION: eu-central-1
-  ECR_REPOSITORY: 660416467304.dkr.ecr.eu-central-1.amazonaws.com/portfolio_tracker_repo
+  ECR_REPOSITORY: portfolio_tracker_repo
   ECS_SERVICE: portfolio-tracker-service
   ECS_CLUSTER: devCluster
   ECS_TASK_DEFINITION: .aws/dev-task-definition.json
