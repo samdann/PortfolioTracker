@@ -33,7 +33,7 @@ on:
 env:
   AWS_REGION: eu-central-1
   ECR_REPOSITORY: portfolio_tracker_repo
-  ECS_SERVICE: another-test-service
+  ECS_SERVICE: portfolio-tracker-service
   ECS_CLUSTER: devCluster
   ECS_TASK_DEFINITION: .aws/dev-task-definition.json
   CONTAINER_NAME: portfolio-tracker
