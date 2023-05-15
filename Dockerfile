@@ -6,7 +6,7 @@ RUN gradle clean build
 
 
 #Package
-FROM openjdk:8-jdk-alpine
+FROM openjdk:17-oracle
 ENV JAR_NAME=PortfolioTracker-1.0-SNAPSHOT.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
