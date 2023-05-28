@@ -1,12 +1,16 @@
 package org.blackchain.controller;
 
 import io.goodforgod.api.etherscan.EtherScanAPI;
+import io.goodforgod.api.etherscan.model.Tx;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.blackchain.service.TransactionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,6 +28,9 @@ import org.web3j.utils.Convert.Unit;
 public class AccountController {
 
     private static final String RPC_PROVIDER = "https://rpc.ankr.com/eth";
+
+    @Autowired
+    TransactionService transactionService;
 
     @Operation(description = "account-balance", tags = "account-api")
     @RequestMapping(
@@ -47,17 +54,30 @@ public class AccountController {
 
         EtherScanAPI api = EtherScanAPI.builder().build();
         BigInteger etherScanBalanceInEth = api.account().balance(address).getBalanceInWei().asWei();
-        //api.account().
 
         if (etherScanBalanceInEth.toString().equals(web3BalanceInEth.toString())) {
             result.append(web3BalanceInEth);
-            log.info("Error logging {}", api.getClass().toString());
 
         } else {
             result.append("NADA");
         }
 
         return ResponseEntity.ok().body(result.toString());
+
+    }
+
+    @Operation(description = "account-transactions", tags = "account-api")
+    @RequestMapping(
+            value = "/_account-transactions",
+            produces = {"application/json"},
+            method = RequestMethod.GET
+    )
+    public ResponseEntity<List<Tx>> getAccountTransactions(
+            @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
+            throws IOException {
+        EtherScanAPI api = EtherScanAPI.builder().build();
+        List<Tx> transactionsByAddress = transactionService.getTransactionsByAddress(api, address);
+        return ResponseEntity.ok().body(transactionsByAddress);
 
     }
 }
