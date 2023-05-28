@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,6 +19,7 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Convert.Unit;
 
+@Slf4j
 @RestController
 public class AccountController {
 
@@ -45,9 +47,12 @@ public class AccountController {
 
         EtherScanAPI api = EtherScanAPI.builder().build();
         BigInteger etherScanBalanceInEth = api.account().balance(address).getBalanceInWei().asWei();
+        //api.account().
 
         if (etherScanBalanceInEth.toString().equals(web3BalanceInEth.toString())) {
             result.append(web3BalanceInEth);
+            log.info("Error logging {}", api.getClass().toString());
+
         } else {
             result.append("NADA");
         }
