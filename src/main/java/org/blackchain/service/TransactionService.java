@@ -3,6 +3,8 @@ package org.blackchain.service;
 import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.error.EtherScanException;
 import io.goodforgod.api.etherscan.model.Tx;
+import io.goodforgod.api.etherscan.model.TxErc20;
+import io.goodforgod.api.etherscan.model.TxErc721;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,10 @@ public class TransactionService {
         List<Tx> list = new ArrayList<>();
         try {
             List<Tx> txs = api.account().txs(address);
+            List<TxErc20> txErc20s = api.account().txsErc20(address);
+            List<TxErc721> txErc721s = api.account().txsErc721(address);
+            //api.account().
+
             if (!CollectionUtils.isEmpty(txs)) {
                 int size = txs.size();
                 txs.forEach(tx -> {

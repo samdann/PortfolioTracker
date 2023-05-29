@@ -72,12 +72,12 @@ public class AccountController {
             produces = {"application/json"},
             method = RequestMethod.GET
     )
-    public ResponseEntity<List<Tx>> getAccountTransactions(
+    public ResponseEntity<String> getAccountTransactions(
             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
             throws IOException {
         EtherScanAPI api = EtherScanAPI.builder().build();
         List<Tx> transactionsByAddress = transactionService.getTransactionsByAddress(api, address);
-        return ResponseEntity.ok().body(transactionsByAddress);
+        return ResponseEntity.ok().body(transactionsByAddress.toString());
 
     }
 }
