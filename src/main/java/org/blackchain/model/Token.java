@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
-public class TokenInfo {
+public class Token {
 
     private String tokenName;
     private BigInteger tokenBalance;

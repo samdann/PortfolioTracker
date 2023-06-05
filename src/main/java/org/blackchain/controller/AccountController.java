@@ -1,14 +1,13 @@
 package org.blackchain.controller;
 
 import io.goodforgod.api.etherscan.EtherScanAPI;
-import io.goodforgod.api.etherscan.model.Tx;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.blackchain.model.AddressAssets;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -76,8 +75,8 @@ public class AccountController {
             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
             throws IOException {
         EtherScanAPI api = EtherScanAPI.builder().build();
-        List<Tx> transactionsByAddress = transactionService.getTransactionsByAddress(api, address);
-        return ResponseEntity.ok().body(transactionsByAddress.toString());
+        AddressAssets addressAssets = transactionService.getAddressAssets(api, address);
+        return ResponseEntity.ok().body(addressAssets.toString());
 
     }
 }
