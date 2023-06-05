@@ -4,16 +4,18 @@ import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.error.EtherScanException;
 import io.goodforgod.api.etherscan.model.Abi;
 import io.goodforgod.api.etherscan.model.Balance;
+import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.Wei;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
+import org.blackchain.model.Token;
+import org.blackchain.model.Transaction;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,19 +28,28 @@ public class TransactionService {
     public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
         log.info("...retrieving all assets for address: {}", address);
         AddressAssets addressAssets = new AddressAssets();
-        List<Tx> list = new ArrayList<>();
         try {
-            List<Tx> txs = api.account().txs(address);
 
+            // first, transactions
+            List<Tx> txs = api.account().txs(address);
+            txs.forEach(tx -> {
+                Transaction transaction = Transaction.builder().from(tx.getFrom()).to(tx.getTo())
+                        .value(tx.getValue()).build();
+                addressAssets.getTransactions().add(transaction);
+            });
+
+            // second, ERC20 transactions/tokens
             List<TxErc20> txErc20s = api.account().txsErc20(address);
             if (!CollectionUtils.isEmpty(txErc20s)) {
-                //addressAssets.getTransactions().addAll(txs);
-
                 List<String> erc20Tokens = getErc20TokenAddresses(txErc20s);
                 erc20Tokens.forEach(tokenAddress -> {
                     List<TxErc20> erc20s = api.account().txsErc20(address, tokenAddress);
-
-
+                    TokenBalance tokenBalance = api.account().balance(address, tokenAddress);
+                    Token token = new Token();
+                    token.setTokenBalance(tokenBalance.getBalanceInWei().asWei());
+                    token.setNumberTx(erc20s.size());
+                    token.setTokenContractAddress(tokenAddress);
+                    addressAssets.getTokens().add(token);
                 });
             }
         } catch (EtherScanException ex) {

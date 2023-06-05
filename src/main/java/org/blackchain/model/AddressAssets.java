@@ -1,6 +1,5 @@
 package org.blackchain.model;
 
-import io.goodforgod.api.etherscan.model.Tx;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +12,7 @@ public class AddressAssets {
 
     private BigInteger ethBalance;
     private List<Token> tokens;
-    private List<Tx> transactions;
+    private List<Transaction> transactions;
 
     public List<Token> getTokens() {
         if (tokens == null) {
@@ -22,7 +21,7 @@ public class AddressAssets {
         return tokens;
     }
 
-    public List<Tx> getTransactions() {
+    public List<Transaction> getTransactions() {
         if (transactions == null) {
             transactions = new ArrayList<>();
         }
