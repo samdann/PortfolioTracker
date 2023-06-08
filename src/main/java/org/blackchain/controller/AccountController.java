@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,12 +27,17 @@ import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @RestController
+@PropertySource("secret.properties")
+@Configuration
 public class AccountController {
 
     private static final String RPC_PROVIDER = "https://rpc.ankr.com/eth";
 
     @Autowired
     TransactionService transactionService;
+
+    @Value("${etherscan.api.key}")
+    private String etherscanApiKey;
 
     @Operation(description = "account-balance", tags = "account-api")
     @RequestMapping(
@@ -74,7 +82,7 @@ public class AccountController {
     public ResponseEntity<AddressAssets> getAccountTransactions(
             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
             throws IOException {
-        EtherScanAPI api = EtherScanAPI.builder().build();
+        EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
         AddressAssets addressAssets = transactionService.getAddressAssets(api, address);
         return ResponseEntity.ok().body(addressAssets);
 
