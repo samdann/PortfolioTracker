@@ -3,11 +3,13 @@ package org.blackchain.model;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
+@Builder
 public class AddressAssets {
 
     private BigInteger ethBalance;

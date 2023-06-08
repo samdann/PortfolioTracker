@@ -27,7 +27,7 @@ public class TransactionService {
 
     public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
         log.info("...retrieving all assets for address: {}", address);
-        AddressAssets addressAssets = new AddressAssets();
+        AddressAssets addressAssets = AddressAssets.builder().build();
         try {
 
             // first, transactions
