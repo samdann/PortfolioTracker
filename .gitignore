@@ -3,7 +3,9 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-!**/src/main/resources/secret.properties
+
+### specific files ###
+src/main/resources/secret.properties
 
 ### IntelliJ IDEA ###
 .idea
