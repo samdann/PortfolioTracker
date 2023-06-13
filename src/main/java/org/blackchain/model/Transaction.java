@@ -13,4 +13,5 @@ public class Transaction {
     private String from;
     private String to;
     private BigInteger value;
+    private String txHash;
 }

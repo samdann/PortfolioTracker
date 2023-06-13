@@ -8,6 +8,7 @@ import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.Wei;
+import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -30,15 +31,20 @@ public class TransactionService {
         AddressAssets addressAssets = AddressAssets.builder().build();
         try {
 
-            // first, transactions
+            // 1 - Eth Balance
+            BigInteger ethBalance = api.account().balance(address).getBalanceInWei().asWei();
+            addressAssets.setEthBalance(ethBalance);
+
+            // 2 - transactions
             List<Tx> txs = api.account().txs(address);
             txs.forEach(tx -> {
                 Transaction transaction = Transaction.builder().from(tx.getFrom()).to(tx.getTo())
+                        .txHash(tx.getHash())
                         .value(tx.getValue()).build();
                 addressAssets.getTransactions().add(transaction);
             });
 
-            // second, ERC20 transactions/tokens
+            // 3, ERC20 transactions/tokens
             List<TxErc20> txErc20s = api.account().txsErc20(address);
             if (!CollectionUtils.isEmpty(txErc20s)) {
                 List<String> erc20Tokens = getErc20TokenAddresses(txErc20s);
@@ -55,6 +61,7 @@ public class TransactionService {
         } catch (EtherScanException ex) {
             log.error("...Error retrieving transactions: {}", ex.getMessage());
         }
+        log.info("...successfully retrieved assets for address: {}", address);
         return addressAssets;
     }
 
