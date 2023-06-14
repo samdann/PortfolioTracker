@@ -51,10 +51,10 @@ public class TransactionService {
                 erc20Tokens.forEach(tokenAddress -> {
                     List<TxErc20> erc20s = api.account().txsErc20(address, tokenAddress);
                     TokenBalance tokenBalance = api.account().balance(address, tokenAddress);
-                    Token token = new Token();
-                    token.setTokenBalance(tokenBalance.getBalanceInWei().asWei());
-                    token.setNumberTx(erc20s.size());
-                    token.setTokenContractAddress(tokenAddress);
+                    Token token = Token.builder()
+                            .tokenBalance(tokenBalance.getBalanceInWei().asWei())
+                            .numberTx(erc20s.size()).tokenContractAddress(tokenAddress).build();
+
                     addressAssets.getTokens().add(token);
                 });
             }
