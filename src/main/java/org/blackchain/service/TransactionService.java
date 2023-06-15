@@ -38,9 +38,15 @@ public class TransactionService {
             // 2 - transactions
             List<Tx> txs = api.account().txs(address);
             txs.forEach(tx -> {
-                Transaction transaction = Transaction.builder().from(tx.getFrom()).to(tx.getTo())
+                Transaction transaction = Transaction.builder()
                         .txHash(tx.getHash())
-                        .value(tx.getValue()).build();
+                        .blockNumber(tx.getBlockNumber())
+                        .from(tx.getFrom())
+                        .to(tx.getTo())
+                        .value(tx.getValue())
+                        .gas(tx.getGas().asWei())
+                        .gasUsed(tx.getGasUsed().asWei())
+                        .build();
                 addressAssets.getTransactions().add(transaction);
             });
 

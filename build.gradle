@@ -22,12 +22,15 @@ dependencies {
     //Lombok
     compileOnly 'org.projectlombok:lombok:1.18.28'
     annotationProcessor 'org.projectlombok:lombok:1.18.28'
-    
+
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 
     //Etherscan
-    implementation "com.github.goodforgod:java-etherscan-api:2.0.0"
+    implementation 'com.github.goodforgod:java-etherscan-api:2.0.0'
+
+    // Coinbase
+    //implementation 'com.coinbase:coinbase-java:3.0.0-15'
 
     //web3j
     implementation 'org.web3j:core:4.9.8'

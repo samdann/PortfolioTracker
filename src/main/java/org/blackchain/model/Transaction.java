@@ -10,8 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 public class Transaction {
 
+    private String txHash;
+    private long blockNumber;
     private String from;
     private String to;
     private BigInteger value;
-    private String txHash;
+    private BigInteger gas;
+    private BigInteger gasUsed;
+
 }
