@@ -19,6 +19,7 @@ import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
 import org.blackchain.util.Requests;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -28,9 +29,12 @@ public class TransactionService {
 
     private static final String TOKEN_ADDRESS = "";
 
+    @Autowired
+    Requests requests;
+
     public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
         try {
-            Requests.getRequest();
+            requests.getRequest();
         } catch (IOException ex) {
             log.error(ex.getMessage());
         }
