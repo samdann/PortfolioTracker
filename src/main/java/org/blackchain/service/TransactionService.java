@@ -8,6 +8,7 @@ import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.Wei;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Arrays;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
+import org.blackchain.util.Requests;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -27,6 +29,11 @@ public class TransactionService {
     private static final String TOKEN_ADDRESS = "";
 
     public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
+        try {
+            Requests.getRequest();
+        } catch (IOException ex) {
+            log.error(ex.getMessage());
+        }
         log.info("...retrieving all assets for address: {}", address);
         AddressAssets addressAssets = AddressAssets.builder().build();
         try {

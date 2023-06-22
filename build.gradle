@@ -32,6 +32,8 @@ dependencies {
     // Coinbase
     //implementation 'com.coinbase:coinbase-java:3.0.0-15'
 
+    implementation 'commons-codec:commons-codec:1.15'
+
     //web3j
     implementation 'org.web3j:core:4.9.8'
 
