@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -51,6 +50,7 @@ public class Requests {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
 
+        String method = "GET";
         String timestamp = new Date().getTime() / 1000 + "";
         String signature = getSignature(timestamp, "GET", "/address-book", "");
 
@@ -61,6 +61,8 @@ public class Requests {
                 .addHeader(CB_ACCESS_PASSPHRASE, coinbaseApiPassPhrase)
                 .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
                 .addHeader(CB_ACCESS_SIGN, signature)
+                .addHeader("CB-VERSION", "2023-06-22")
+                .addHeader("User-Agent", "request")
                 .build();
         Response response = client.newCall(request).execute();
         assert response.body() != null;
@@ -73,7 +75,9 @@ public class Requests {
         byte[] secretKey = Base64.getDecoder().decode(coinbaseApiKey.getBytes());
         String message = timeStamp + method + path + body;
 
-        return new HmacUtils(HMAC_SHA256_ALGO, coinbaseApiKey.getBytes()).hmacHex(message);
+        byte[] hmacSha256 = calcHmacSha256(secretKey, message.getBytes());
+
+        return Base64.getEncoder().encodeToString(hmacSha256);
     }
 
 
