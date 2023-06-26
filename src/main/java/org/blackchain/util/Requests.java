@@ -7,10 +7,10 @@ import java.util.Date;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -52,13 +52,15 @@ public class Requests {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
 
+
         String method = "GET";
         String timestamp = new Date().getTime() / 1000L + "";
         String signature = getSignature(timestamp, "GET", "/address-book", "");
 
         Request request = new Request.Builder()
                 .url("https://api.exchange.coinbase.com/address-book")
-                .addHeader("Content-Type", "application/json")
+                .addHeader("Content-Type", "application/json; charset=UTF-8")
+
                 .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
                 .addHeader(CB_ACCESS_PASSPHRASE, coinbaseApiPassPhrase)
                 .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
@@ -75,12 +77,14 @@ public class Requests {
         byte[] secretKey = Base64.getDecoder().decode(coinbaseApiKey.getBytes());
         String message = timeStamp + method + path + ((body == null) ? "" : body);
 
+
         //byte[] hmacSha256 = calcHmacSha256(secretKey, message.getBytes(StandardCharsets.UTF_8));
 
         return new HmacUtils(HMAC_SHA256_ALGO, secretKey).hmacHex(
                 message.getBytes(StandardCharsets.UTF_8));
         //return Hex.encodeHexString(hmacSha256);
         //return Base64.getEncoder().encode
+
     }
 
 
