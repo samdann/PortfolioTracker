@@ -1,6 +1,7 @@
 package org.blackchain.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 import javax.crypto.Mac;
@@ -51,21 +52,19 @@ public class Requests {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
 
-        MediaType mediaType = MediaType.parse("application/json");
 
         String method = "GET";
-        String timestamp = new Date().getTime() / 1000 + "";
-        String signature = getSignature(timestamp, method, "/accounts", "");
+        String timestamp = new Date().getTime() / 1000L + "";
+        String signature = getSignature(timestamp, "GET", "/address-book", "");
 
         Request request = new Request.Builder()
-                .url("https://api.exchange.coinbase.com/accounts")
+                .url("https://api.exchange.coinbase.com/address-book")
                 .addHeader("Content-Type", "application/json; charset=UTF-8")
+
                 .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
                 .addHeader(CB_ACCESS_PASSPHRASE, coinbaseApiPassPhrase)
                 .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
                 .addHeader(CB_ACCESS_SIGN, signature)
-                .addHeader("CB-VERSION", "2023-06-22")
-                .addHeader("User-Agent", "request")
                 .build();
         Response response = client.newCall(request).execute();
         assert response.body() != null;
@@ -76,11 +75,16 @@ public class Requests {
     private String getSignature(String timeStamp, String method, String path, String body) {
 
         byte[] secretKey = Base64.getDecoder().decode(coinbaseApiKey.getBytes());
-        String message = timeStamp + method + path + body;
+        String message = timeStamp + method + path + ((body == null) ? "" : body);
 
-        byte[] hmacSha256 = calcHmacSha256(secretKey, message.getBytes());
 
-        return Base64.getEncoder().encodeToString(hmacSha256);
+        //byte[] hmacSha256 = calcHmacSha256(secretKey, message.getBytes(StandardCharsets.UTF_8));
+
+        return new HmacUtils(HMAC_SHA256_ALGO, secretKey).hmacHex(
+                message.getBytes(StandardCharsets.UTF_8));
+        //return Hex.encodeHexString(hmacSha256);
+        //return Base64.getEncoder().encode
+
     }
 
 
