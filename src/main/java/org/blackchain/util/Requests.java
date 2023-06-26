@@ -52,10 +52,10 @@ public class Requests {
                 .build();
 
         String timestamp = new Date().getTime() / 1000 + "";
-        String signature = getSignature(timestamp, "GET", "/accounts", "");
+        String signature = getSignature(timestamp, "GET", "/address-book", "");
 
         Request request = new Request.Builder()
-                .url("https://api.exchange.coinbase.com/accounts")
+                .url("https://api.exchange.coinbase.com/address-book")
                 .addHeader("Content-Type", "application/json")
                 .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
                 .addHeader(CB_ACCESS_PASSPHRASE, coinbaseApiPassPhrase)
