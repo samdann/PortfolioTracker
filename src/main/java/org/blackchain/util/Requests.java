@@ -77,10 +77,7 @@ public class Requests {
         String message = timeStamp + method + path + ((body == null) ? "" : body);
         log.info(message);
         return calcHmacSha256(coinbaseApiPassPhrase.getBytes(StandardCharsets.UTF_8), message);
-        //HmacUtils.
 
-        //return Hex.encodeHexString(hmacSha256);
-        //return Base64.getEncoder().encodeToString(hmacSha256);
     }
 
 
