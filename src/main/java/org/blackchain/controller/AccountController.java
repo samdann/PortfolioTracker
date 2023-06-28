@@ -6,10 +6,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
-import org.blackchain.model.coinbase.CoinbaseProduct;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -87,17 +85,6 @@ public class AccountController {
         EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
         AddressAssets addressAssets = transactionService.getAddressAssets(api, address);
         return ResponseEntity.ok().body(addressAssets);
-
-    }
-
-    @Operation(description = "coinbase-requests", tags = "coinbase-api")
-    @RequestMapping(
-            value = "/coinbase-products",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<List<CoinbaseProduct>> executeCBGetRequests() {
-        return ResponseEntity.ok().body(transactionService.executeCBGetRequests());
 
     }
 }
