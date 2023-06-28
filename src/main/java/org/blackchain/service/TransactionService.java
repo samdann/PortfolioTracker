@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
+import org.blackchain.model.coinbase.CoinbaseProduct;
 import org.blackchain.util.Requests;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,11 +34,7 @@ public class TransactionService {
     Requests requests;
 
     public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
-        try {
-            requests.getRequest();
-        } catch (IOException ex) {
-            log.error(ex.getMessage());
-        }
+
         log.info("...retrieving all assets for address: {}", address);
         AddressAssets addressAssets = AddressAssets.builder().build();
         try {
@@ -80,6 +77,15 @@ public class TransactionService {
         }
         log.info("...successfully retrieved assets for address: {}", address);
         return addressAssets;
+    }
+
+    public List<CoinbaseProduct> executeCBGetRequests() {
+        try {
+            return requests.getRequest();
+        } catch (IOException ex) {
+            log.error(ex.getMessage());
+            return null;
+        }
     }
 
     private List<String> getErc20TokenAddresses(final List<TxErc20> txs) {
