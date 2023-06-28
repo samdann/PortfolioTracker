@@ -43,13 +43,13 @@ public class CoinbaseRestService implements RestAPI {
         String signature = getSignature(timestamp, method, requestPath, body);
 
         Request request = new Request.Builder()
-                .url(baseUrl + requestPath)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
                 .addHeader(CB_ACCESS_SECRET, coinbaseApiPassPhrase)
                 .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
                 .addHeader(CB_ACCESS_SIGN, signature)
                 .build();
+        
         ResponseBody responseBody = null;
         try {
             responseBody = client.newCall(request).execute().body();
