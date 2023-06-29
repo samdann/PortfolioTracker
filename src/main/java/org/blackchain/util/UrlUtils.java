@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class UrlUtils {
 
     private static final String EQUALS_STRING = "=";
-    private static final String QUESTION_MARK_STRING = "?";
+    private static final String QUESTION_MARK_STRING = "&";
 
     public static String addQueryParams(final Map<String, String> queryParams) {
         StringBuffer sb = new StringBuffer();

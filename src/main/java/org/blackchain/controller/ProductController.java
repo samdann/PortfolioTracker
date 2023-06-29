@@ -3,11 +3,12 @@ package org.blackchain.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.coinbase.CoinbaseProduct;
+import org.blackchain.model.coinbase.Granularity;
 import org.blackchain.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,15 +44,15 @@ public class ProductController {
     public ResponseEntity<String> getProductHistoricData(
             @Parameter(name = "product_id", description = "Id of the product") @RequestParam(value = "product_id", required = true) final String productId,
             @Parameter(name = "start", description = "start of the period") @RequestParam(value = "start", required = true) final Instant start,
-            @Parameter(name = "end", description = "end of the period") @RequestParam(value = "end", required = true) Instant end) {
+            @Parameter(name = "end", description = "end of the period") @RequestParam(value = "end", required = true) Instant end,
+            @Parameter(name = "granularity", description = "time scale of each candle") @RequestParam(value = "granularity", required = true) Granularity granularity) {
 
-        Map<String, String> queryParams = new HashMap<>();
-        if (start != null) {
-            queryParams.put("start", start.toString());
-        }
-        if (end != null) {
-            queryParams.put("end", end.toString());
-        }
+        Map<String, String> queryParams = new LinkedHashMap<>();
+
+        queryParams.put("start", start.toEpochMilli() / 1000 + "");
+        queryParams.put("end", end.toEpochMilli() / 1000 + "");
+        queryParams.put("granularity", granularity.toString());
+
         return ResponseEntity.ok()
                 .body(productService.getProductHistoricData(productId, queryParams));
     }
