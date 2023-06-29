@@ -3,11 +3,13 @@ package org.blackchain.service;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.blackchain.api.http.CoinbaseRestService;
 import org.blackchain.model.coinbase.CoinbaseProduct;
 import org.blackchain.model.coinbase.CoinbaseProducts;
+import org.blackchain.util.UrlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +26,7 @@ public class ProductService {
 
     public List<CoinbaseProduct> getCoinbaseProducts() {
 
-        String responseString = executeGetRequest(COINBASE_BASE_URL, COINBASE_PATH_PRODUCTS);
+        String responseString = executeGetRequest(COINBASE_BASE_URL, COINBASE_PATH_PRODUCTS, null);
 
         Gson gson = new Gson();
         CoinbaseProducts coinbaseProducts = gson.fromJson(responseString, CoinbaseProducts.class);
@@ -33,16 +35,20 @@ public class ProductService {
                 .toList();
     }
 
-    public String getProductHistoricData(final String productId) {
-        ResponseBody responseBody = coinbaseRestService.executeGetRequest(COINBASE_BASE_URL,
-                COINBASE_PATH_PRODUCT_CANDLES, null);
+    public String getProductHistoricData(final String productId,
+            final Map<String, String> queryParams) {
+        final String requestPath = COINBASE_PATH_PRODUCT_CANDLES.replace("{product_id}", productId);
+        String requestParams = UrlUtils.addQueryParams(queryParams);
+        String responseString = executeGetRequest(COINBASE_BASE_URL, requestPath,
+                requestParams);
 
-        return null;
+        return responseString;
     }
 
-    private String executeGetRequest(final String baseUrl, final String requestPath) {
+    private String executeGetRequest(final String baseUrl, final String requestPath,
+            final String requestParams) {
         ResponseBody responseBody = coinbaseRestService.executeGetRequest(baseUrl,
-                requestPath, null);
+                requestPath, requestParams, null);
         String responseString = null;
         try {
             responseString = responseBody.string();

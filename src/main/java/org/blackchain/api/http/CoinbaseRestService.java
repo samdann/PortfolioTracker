@@ -34,6 +34,7 @@ public class CoinbaseRestService implements RestAPI {
 
     @Override
     public ResponseBody executeGetRequest(final String baseUrl, final String requestPath,
+            final String requestParams,
             final String body) {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
@@ -43,13 +44,14 @@ public class CoinbaseRestService implements RestAPI {
         String signature = getSignature(timestamp, method, requestPath, body);
 
         Request request = new Request.Builder()
+                .url(baseUrl + requestPath + requestParams)
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
                 .addHeader(CB_ACCESS_SECRET, coinbaseApiPassPhrase)
                 .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
                 .addHeader(CB_ACCESS_SIGN, signature)
                 .build();
-        
+
         ResponseBody responseBody = null;
         try {
             responseBody = client.newCall(request).execute().body();
@@ -60,7 +62,8 @@ public class CoinbaseRestService implements RestAPI {
         return responseBody;
     }
 
-    private String getSignature(String timeStamp, String method, String path, String body) {
+    private String getSignature(final String timeStamp, final String method, final String path,
+            final String body) {
 
         String message = timeStamp + method + path + ((body == null) ? "" : body);
         byte[] secretKey = coinbaseApiPassPhrase.getBytes(StandardCharsets.UTF_8);
