@@ -12,8 +12,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.apache.commons.codec.binary.Hex;
-import org.blackchain.model.coinbase.CoinbaseProduct;
-import org.blackchain.model.coinbase.CoinbaseProducts;
+import org.blackchain.model.coinbase.product.CBProduct;
+import org.blackchain.model.coinbase.product.CBProducts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -88,13 +88,13 @@ public class Requests {
 
     }
 
-    private List<CoinbaseProduct> convertToJson(String responseString) {
+    private List<CBProduct> convertToJson(String responseString) {
         log.info(responseString);
         Gson gson = new Gson();
 
-        CoinbaseProducts coinbaseProducts = gson.fromJson(responseString, CoinbaseProducts.class);
+        CBProducts CBProducts = gson.fromJson(responseString, CBProducts.class);
 
-        return coinbaseProducts.getProducts().stream()
+        return CBProducts.getProducts().stream()
                 .filter(product -> product.getBase_display_symbol().equalsIgnoreCase("BTC"))
                 .toList();
 

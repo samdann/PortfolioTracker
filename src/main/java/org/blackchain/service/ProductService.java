@@ -7,8 +7,10 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.blackchain.api.http.CoinbaseRestService;
-import org.blackchain.model.coinbase.CoinbaseProduct;
-import org.blackchain.model.coinbase.CoinbaseProducts;
+import org.blackchain.model.coinbase.candle.CBCandle;
+import org.blackchain.model.coinbase.candle.CBCandles;
+import org.blackchain.model.coinbase.product.CBProduct;
+import org.blackchain.model.coinbase.product.CBProducts;
 import org.blackchain.util.UrlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,25 +26,28 @@ public class ProductService {
     @Autowired
     CoinbaseRestService coinbaseRestService;
 
-    public List<CoinbaseProduct> getCoinbaseProducts() {
+    public List<CBProduct> getCoinbaseProducts() {
 
         String responseString = executeGetRequest(COINBASE_BASE_URL, COINBASE_PATH_PRODUCTS, null);
 
         Gson gson = new Gson();
-        CoinbaseProducts coinbaseProducts = gson.fromJson(responseString, CoinbaseProducts.class);
-        return coinbaseProducts.getProducts().stream()
+        CBProducts productList = gson.fromJson(responseString, CBProducts.class);
+        return productList.getProducts().stream()
                 .filter(product -> product.getBase_display_symbol().equalsIgnoreCase("BTC"))
                 .toList();
     }
 
-    public String getProductHistoricData(final String productId,
+    public List<CBCandle> getProductHistoricData(final String productId,
             final Map<String, String> queryParams) {
         final String requestPath = COINBASE_PATH_PRODUCT_CANDLES.replace("{product_id}", productId);
         String requestParams = UrlUtils.addQueryParams(queryParams);
         String responseString = executeGetRequest(COINBASE_BASE_URL, requestPath,
                 requestParams);
 
-        return responseString;
+        Gson gson = new Gson();
+        CBCandles candleList = gson.fromJson(responseString, CBCandles.class);
+
+        return candleList.getCandles();
     }
 
     private String executeGetRequest(final String baseUrl, final String requestPath,
