@@ -7,8 +7,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.coinbase.CoinbaseProduct;
 import org.blackchain.model.coinbase.Granularity;
+import org.blackchain.model.coinbase.candle.CBCandle;
+import org.blackchain.model.coinbase.product.CBProduct;
 import org.blackchain.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class ProductController {
             produces = {"application/json"},
             method = RequestMethod.GET
     )
-    public ResponseEntity<List<CoinbaseProduct>> getListProducts() {
+    public ResponseEntity<List<CBProduct>> getListProducts() {
         return ResponseEntity.ok().body(productService.getCoinbaseProducts());
 
     }
@@ -41,10 +42,10 @@ public class ProductController {
             produces = {"application/json"},
             method = RequestMethod.GET
     )
-    public ResponseEntity<String> getProductHistoricData(
+    public ResponseEntity<List<CBCandle>> getProductHistoricData(
             @Parameter(name = "product_id", description = "Id of the product") @RequestParam(value = "product_id", required = true) final String productId,
-            @Parameter(name = "start", description = "start of the period") @RequestParam(value = "start", required = true) final Instant start,
-            @Parameter(name = "end", description = "end of the period") @RequestParam(value = "end", required = true) Instant end,
+            @Parameter(name = "start", description = "Start of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "start", required = true) final Instant start,
+            @Parameter(name = "end", description = "End of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "end", required = true) Instant end,
             @Parameter(name = "granularity", description = "time scale of each candle") @RequestParam(value = "granularity", required = true) Granularity granularity) {
 
         Map<String, String> queryParams = new LinkedHashMap<>();

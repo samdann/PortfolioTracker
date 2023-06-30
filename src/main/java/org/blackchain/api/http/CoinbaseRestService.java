@@ -61,6 +61,7 @@ public class CoinbaseRestService implements RestAPI {
         assert responseBody != null;
         return responseBody;
     }
+    
 
     private String getSignature(final String timeStamp, final String method, final String path,
             final String body) {
