@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.Transaction;
+import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,17 +76,17 @@ public class AccountController {
 
     @Operation(description = "account-transactions", tags = "account-api")
     @RequestMapping(
-            value = "/account-transactions",
+            value = "/historic-balance",
             produces = {"application/json"},
             method = RequestMethod.GET
     )
-    public ResponseEntity<List<Transaction>> getAccountTransactions(
+    public ResponseEntity<List<HistoricBalance>> getAccountTransactions(
             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
             throws IOException {
         EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-        List<Transaction> txs = transactionService.getETHTransactionsByAddress(
+        List<HistoricBalance> historicBalanceList = transactionService.getETHTransactionsByAddress(
                 api, address);
-        return ResponseEntity.ok().body(txs);
+        return ResponseEntity.ok().body(historicBalanceList);
 
     }
 

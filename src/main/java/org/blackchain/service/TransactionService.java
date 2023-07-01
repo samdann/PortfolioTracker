@@ -7,20 +7,25 @@ import io.goodforgod.api.etherscan.model.Balance;
 import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
+import io.goodforgod.api.etherscan.model.TxInternal;
 import io.goodforgod.api.etherscan.model.Wei;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
+import org.blackchain.model.etherscan.HistoricBalance;
+import org.blackchain.util.EtherUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -34,11 +39,12 @@ public class TransactionService {
     @Autowired
     EtherScanService etherScanService;
 
-    public List<Transaction> getETHTransactionsByAddress(final EtherScanAPI api,
+    public List<HistoricBalance> getETHTransactionsByAddress(final EtherScanAPI api,
             final String address) {
         log.info("Retrieving all ETH transactions for address: {}", address);
 
         final List<Transaction> transactionList = new ArrayList<>();
+        // normal transactions
         List<Tx> txs = etherScanService.getAccountTransactions(api, address);
         txs.forEach(tx -> {
             Transaction transaction = Transaction.builder()
@@ -54,11 +60,43 @@ public class TransactionService {
             transactionList.add(transaction);
         });
 
-        final Map<Timestamp, Long> historicBalance = new HashMap<>();
-        transactionList.stream().sorted(
-                (o1, o2) -> Long.compare(o1.getTimestamp(), o2.getTimestamp()));
+        // internal transactions
+        List<TxInternal> internalTxs = etherScanService.getAccountInternalTransactions(
+                api, address);
+        internalTxs.forEach(tx -> {
+            Transaction transaction = Transaction.builder()
+                    .txHash(tx.getHash())
+                    .blockNumber(tx.getBlockNumber())
+                    .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                    .from(tx.getFrom())
+                    .to(tx.getTo())
+                    .value(tx.getValue())
+                    .gas(tx.getGas().asWei())
+                    .gasUsed(tx.getGasUsed().asWei())
+                    .build();
+            transactionList.add(transaction);
+        });
 
-        return transactionList;
+        final List<HistoricBalance> balanceList = new ArrayList<>();
+        List<Transaction> sortedList = transactionList.stream().sorted(
+                        Comparator.comparingLong(Transaction::getTimestamp))
+                .toList();
+
+        BigInteger balance = BigInteger.valueOf(0);
+        for (Transaction tx : sortedList) {
+            balance = address.equals(tx.getTo()) ? balance.add(tx.getValue())
+                    : balance.subtract(tx.getValue());
+            HistoricBalance historicBalance = HistoricBalance.builder().balance(balance)
+                    .timeStamp(tx.getTimestamp()).build();
+            balanceList.add(historicBalance);
+            log.info("Balance on {} is: {} ETH.",
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(historicBalance.getTimeStamp()),
+                            TimeZone.getDefault().toZoneId()),
+                    EtherUtils.asEther(historicBalance.getBalance()));
+
+        }
+
+        return balanceList;
 
     }
 

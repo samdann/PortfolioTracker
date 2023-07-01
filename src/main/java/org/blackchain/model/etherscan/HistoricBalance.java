@@ -1,4 +1,4 @@
-package org.blackchain.model;
+package org.blackchain.model.etherscan;
 
 import java.math.BigInteger;
 import lombok.Builder;
@@ -6,8 +6,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AccountBalance {
+public class HistoricBalance {
 
-    private String address;
+    private long timeStamp;
     private BigInteger balance;
 }
