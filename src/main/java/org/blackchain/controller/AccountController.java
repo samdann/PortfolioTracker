@@ -6,8 +6,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.AddressAssets;
+import org.blackchain.model.Transaction;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,16 +76,18 @@ public class AccountController {
 
     @Operation(description = "account-transactions", tags = "account-api")
     @RequestMapping(
-            value = "/_account-transactions",
+            value = "/account-transactions",
             produces = {"application/json"},
             method = RequestMethod.GET
     )
-    public ResponseEntity<AddressAssets> getAccountTransactions(
+    public ResponseEntity<List<Transaction>> getAccountTransactions(
             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
             throws IOException {
         EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-        AddressAssets addressAssets = transactionService.getAddressAssets(api, address);
-        return ResponseEntity.ok().body(addressAssets);
+        List<Transaction> txs = transactionService.getETHTransactionsByAddress(
+                api, address);
+        return ResponseEntity.ok().body(txs);
 
     }
+
 }

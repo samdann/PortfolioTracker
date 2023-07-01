@@ -12,6 +12,7 @@ public class Transaction {
 
     private String txHash;
     private long blockNumber;
+    private long timestamp;
     private String from;
     private String to;
     private BigInteger value;
