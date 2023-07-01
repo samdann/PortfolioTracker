@@ -9,15 +9,18 @@ import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.Wei;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
-import org.blackchain.util.Requests;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -29,9 +32,37 @@ public class TransactionService {
     private static final String TOKEN_ADDRESS = "";
 
     @Autowired
-    Requests requests;
+    EtherScanService etherScanService;
 
-    public AddressAssets getAddressAssets(EtherScanAPI api, String address) {
+    public List<Transaction> getETHTransactionsByAddress(final EtherScanAPI api,
+            final String address) {
+        log.info("Retrieving all ETH transactions for address: {}", address);
+
+        final List<Transaction> transactionList = new ArrayList<>();
+        List<Tx> txs = etherScanService.getAccountTransactions(api, address);
+        txs.forEach(tx -> {
+            Transaction transaction = Transaction.builder()
+                    .txHash(tx.getHash())
+                    .blockNumber(tx.getBlockNumber())
+                    .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                    .from(tx.getFrom())
+                    .to(tx.getTo())
+                    .value(tx.getValue())
+                    .gas(tx.getGas().asWei())
+                    .gasUsed(tx.getGasUsed().asWei())
+                    .build();
+            transactionList.add(transaction);
+        });
+
+        final Map<Timestamp, Long> historicBalance = new HashMap<>();
+        transactionList.stream().sorted(
+                (o1, o2) -> Long.compare(o1.getTimestamp(), o2.getTimestamp()));
+
+        return transactionList;
+
+    }
+
+    public AddressAssets getAddressAssets(final EtherScanAPI api, String address) {
 
         log.info("...retrieving all assets for address: {}", address);
         AddressAssets addressAssets = AddressAssets.builder().build();
@@ -47,6 +78,7 @@ public class TransactionService {
                 Transaction transaction = Transaction.builder()
                         .txHash(tx.getHash())
                         .blockNumber(tx.getBlockNumber())
+                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
                         .from(tx.getFrom())
                         .to(tx.getTo())
                         .value(tx.getValue())
