@@ -105,46 +105,64 @@ public class TransactionService {
 
         }
 
-        List<CBCandle> productHistoricData = getETHUSDCandles();
+        return balanceList;
+    }
 
-        Optional<Long> minOptional = balanceList.stream().map(HistoricBalance::getTimeStamp)
-                .min((x, y) -> Long.compare(y, x));
+    public List<PairPerformance> getHistoricPerformanceByProduct(final EtherScanAPI api,
+            final String address) {
+
+        log.info("Retrieving historic performance for address: {}", address);
+
+        List<HistoricBalance> balanceList = getETHTransactionsByAddress(api, address);
+
+        List<CBCandle> productHistoricData = getETHUSDCandles().stream().sorted(
+                Comparator.comparingLong(CBCandle::getTimeStamp)).toList();
+
+        Optional<Long> minOptional = productHistoricData.stream().map(CBCandle::getTimeStamp)
+                .min(Comparator.comparingLong(x -> x));
         Long minTime = minOptional.orElse(null);
 
         //build map for balances
         Map<Long, BigInteger> balanceMap = balanceList.stream().collect(
                 Collectors.toMap(HistoricBalance::getTimeStamp, HistoricBalance::getBalance));
 
-        List<Long> filteredList = balanceList.stream().map(HistoricBalance::getTimeStamp)
-                .filter(timeStamp -> timeStamp > minTime).toList();
+        List<Long> filteredList = new ArrayList<>(
+                balanceList.stream().map(HistoricBalance::getTimeStamp)
+                        .filter(timeStamp -> timeStamp > minTime).toList());
 
         final List<PairPerformance> result = new ArrayList<>();
         productHistoricData.forEach(data -> {
 
             long initialPoint = !filteredList.isEmpty() ? filteredList.get(0) : 0;
-            if (data.getStart() <= initialPoint) {
-                BigInteger amount = balanceMap.get(initialPoint);
-                BigDecimal price = data.getClose();
-                PairPerformance.builder()
-                        .time(data.getStart())
-                        .amount(amount)
-                        .price(price)
-                        .token(ETH_USD_PAIR)
-                        .marketValue(price.multiply(new BigDecimal(amount)))
-                        .build();
+            if (data.getTimeStamp() > initialPoint && filteredList.size() > 1) {
+                filteredList.remove(0);
+                initialPoint = filteredList.get(0);
             }
+
+            BigInteger amount = balanceMap.get(initialPoint);
+            BigDecimal price = data.getClose();
+            PairPerformance pair = PairPerformance.builder()
+                    .time(data.getTimeStamp())
+                    .amount(amount.divide(
+                            BigInteger.valueOf(Double.valueOf(Math.pow(10, 18)).longValue())))
+                    .price(price)
+                    .token(ETH_USD_PAIR)
+                    .marketValue(price.multiply(new BigDecimal(amount)))
+                    .build();
+            result.add(pair);
+
+
         });
 
-        return balanceList;
-
+        return result;
     }
 
 
     private List<CBCandle> getETHUSDCandles() {
         // initializing the start & end
         Instant now = Instant.now();
-        String start = instantToStringEpoch(now);
-        String end = instantToStringEpoch(now.minus(300, ChronoUnit.DAYS));
+        String end = instantToStringEpoch(now);
+        String start = instantToStringEpoch(now.minus(300, ChronoUnit.DAYS));
 
         // building the queryParams
         Map<String, String> queryParams = new LinkedHashMap<>();

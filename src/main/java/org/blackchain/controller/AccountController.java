@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.etherscan.HistoricBalance;
+import org.blackchain.model.portfolio.PairPerformance;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,7 +77,7 @@ public class AccountController {
 
     @Operation(description = "account-transactions", tags = "account-api")
     @RequestMapping(
-            value = "/historic-balance",
+            value = "/account-transactions",
             produces = {"application/json"},
             method = RequestMethod.GET
     )
@@ -87,6 +88,22 @@ public class AccountController {
         List<HistoricBalance> historicBalanceList = transactionService.getETHTransactionsByAddress(
                 api, address);
         return ResponseEntity.ok().body(historicBalanceList);
+
+    }
+
+    @Operation(description = "account-transactions", tags = "account-api")
+    @RequestMapping(
+            value = "/historic-performance",
+            produces = {"application/json"},
+            method = RequestMethod.GET
+    )
+    public ResponseEntity<List<PairPerformance>> getHistoricPerformance(
+            @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
+            throws IOException {
+        EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
+        List<PairPerformance> historicPerf = transactionService.getHistoricPerformanceByProduct(
+                api, address);
+        return ResponseEntity.ok().body(historicPerf);
 
     }
 

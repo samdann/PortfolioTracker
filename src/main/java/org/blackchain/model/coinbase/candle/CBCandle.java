@@ -14,4 +14,8 @@ public class CBCandle {
     private BigDecimal open;
     private BigDecimal close;
     private BigDecimal volume;
+
+    public long getTimeStamp() {
+        return start * 1000;
+    }
 }
