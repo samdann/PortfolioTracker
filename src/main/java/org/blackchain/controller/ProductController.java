@@ -1,5 +1,7 @@
 package org.blackchain.controller;
 
+import static org.blackchain.util.BasicUtils.instantToStringEpoch;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.Instant;
@@ -50,8 +52,8 @@ public class ProductController {
 
         Map<String, String> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("start", start.toEpochMilli() / 1000 + "");
-        queryParams.put("end", end.toEpochMilli() / 1000 + "");
+        queryParams.put("start", instantToStringEpoch(start));
+        queryParams.put("end", instantToStringEpoch(end));
         queryParams.put("granularity", granularity.toString());
 
         return ResponseEntity.ok()

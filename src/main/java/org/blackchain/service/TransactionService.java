@@ -1,30 +1,35 @@
 package org.blackchain.service;
 
+import static org.blackchain.util.BasicUtils.instantToStringEpoch;
+
 import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.error.EtherScanException;
-import io.goodforgod.api.etherscan.model.Abi;
-import io.goodforgod.api.etherscan.model.Balance;
 import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.TxInternal;
-import io.goodforgod.api.etherscan.model.Wei;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.AddressAssets;
 import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
+import org.blackchain.model.coinbase.Granularity;
+import org.blackchain.model.coinbase.candle.CBCandle;
 import org.blackchain.model.etherscan.HistoricBalance;
+import org.blackchain.model.portfolio.PairPerformance;
 import org.blackchain.util.EtherUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,9 +40,13 @@ import org.springframework.util.CollectionUtils;
 public class TransactionService {
 
     private static final String TOKEN_ADDRESS = "";
+    private static final String ETH_USD_PAIR = "ETH-USD";
 
     @Autowired
     EtherScanService etherScanService;
+
+    @Autowired
+    ProductService productService;
 
     public List<HistoricBalance> getETHTransactionsByAddress(final EtherScanAPI api,
             final String address) {
@@ -96,7 +105,55 @@ public class TransactionService {
 
         }
 
+        List<CBCandle> productHistoricData = getETHUSDCandles();
+
+        Optional<Long> minOptional = balanceList.stream().map(HistoricBalance::getTimeStamp)
+                .min((x, y) -> Long.compare(y, x));
+        Long minTime = minOptional.orElse(null);
+
+        //build map for balances
+        Map<Long, BigInteger> balanceMap = balanceList.stream().collect(
+                Collectors.toMap(HistoricBalance::getTimeStamp, HistoricBalance::getBalance));
+
+        List<Long> filteredList = balanceList.stream().map(HistoricBalance::getTimeStamp)
+                .filter(timeStamp -> timeStamp > minTime).toList();
+
+        final List<PairPerformance> result = new ArrayList<>();
+        productHistoricData.forEach(data -> {
+
+            long initialPoint = !filteredList.isEmpty() ? filteredList.get(0) : 0;
+            if (data.getStart() <= initialPoint) {
+                BigInteger amount = balanceMap.get(initialPoint);
+                BigDecimal price = data.getClose();
+                PairPerformance.builder()
+                        .time(data.getStart())
+                        .amount(amount)
+                        .price(price)
+                        .token(ETH_USD_PAIR)
+                        .marketValue(price.multiply(new BigDecimal(amount)))
+                        .build();
+            }
+        });
+
         return balanceList;
+
+    }
+
+
+    private List<CBCandle> getETHUSDCandles() {
+        // initializing the start & end
+        Instant now = Instant.now();
+        String start = instantToStringEpoch(now);
+        String end = instantToStringEpoch(now.minus(300, ChronoUnit.DAYS));
+
+        // building the queryParams
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        queryParams.put("start", start);
+        queryParams.put("end", end);
+        queryParams.put("granularity", Granularity.ONE_DAY.toString());
+
+        return productService.getProductHistoricData(ETH_USD_PAIR,
+                queryParams);
 
     }
 
@@ -151,31 +208,6 @@ public class TransactionService {
         return txs.stream().map(tx -> tx.getContractAddress()).filter(address -> !address.isEmpty())
                 .distinct()
                 .collect(Collectors.toList());
-    }
-
-    private void check(EtherScanAPI api, String address, String txHash) {
-
-        //balance of an address
-        List<Balance> balances = api.account().balances(Arrays.asList(address, address));
-
-        //all transactions of an address (limit to 10k)
-        List<Tx> txs = api.account().txs(address);
-
-        // list of all erc20 transactions of a specific token for a given address
-        List<TxErc20> txErc20s = api.account().txsErc20(address, TOKEN_ADDRESS);
-
-        // all internal transactions : need to be checked.
-        api.account().txsInternal(address);
-
-        // search transaction by hash.
-        api.account().txsInternalByHash(txHash);
-
-        // contract abi
-        Abi contractAbi = api.contract().contractAbi(TOKEN_ADDRESS);
-
-        Duration estimate = api.gasTracker().estimate(Wei.ofWei(12));
-
-
     }
 
 }
