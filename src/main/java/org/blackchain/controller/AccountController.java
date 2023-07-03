@@ -1,15 +1,13 @@
 package org.blackchain.controller;
 
 import io.goodforgod.api.etherscan.EtherScanAPI;
+import io.goodforgod.api.etherscan.model.TxErc20;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.PairPerformance;
+import org.blackchain.service.EtherScanService;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,12 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
-import org.web3j.protocol.http.HttpService;
-import org.web3j.utils.Convert;
-import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @RestController
@@ -33,78 +25,38 @@ import org.web3j.utils.Convert.Unit;
 @Configuration
 public class AccountController {
 
-    private static final String RPC_PROVIDER = "https://rpc.ankr.com/eth";
+     @Autowired
+     TransactionService transactionService;
 
-    @Autowired
-    TransactionService transactionService;
+     @Autowired
+     EtherScanService etherScanService;
 
-    @Value("${etherscan.api.key}")
-    private String etherscanApiKey;
+     @Value("${etherscan.api.key}")
+     private String etherscanApiKey;
 
-    @Operation(description = "account-balance", tags = "account-api")
-    @RequestMapping(
-            value = "/_account-balance",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<String> getAccountBalance(
-            @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
-            throws IOException {
+     @Operation(description = "account-balance", tags = "account-api")
+     @RequestMapping(value = "/ERC20-transactions", produces = {
+             "application/json"}, method = RequestMethod.GET)
+     public ResponseEntity<List<TxErc20>> getERC20Transactions(
+             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address) {
+          EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
 
-        StringBuilder result = new StringBuilder();
+          List<TxErc20> ERC20Tokens = etherScanService.getERC20Transactions(api, address);
 
-        Web3j web3 = Web3j.build(new HttpService(RPC_PROVIDER));
+          return ResponseEntity.ok().body(ERC20Tokens);
 
-        EthGetBalance balance = web3.ethGetBalance(address,
-                DefaultBlockParameterName.LATEST).send();
+     }
 
-        BigDecimal web3BalanceInEth = Convert.fromWei(balance.getBalance().toString(),
-                Unit.WEI);
+     @Operation(description = "account-transactions", tags = "account-api")
+     @RequestMapping(value = "/historic-performance", produces = {
+             "application/json"}, method = RequestMethod.GET)
+     public ResponseEntity<List<PairPerformance>> getHistoricPerformance(
+             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address) {
+          EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
+          List<PairPerformance> historicPerf = transactionService.getHistoricPerformanceByProduct(
+                  api, address);
+          return ResponseEntity.ok().body(historicPerf);
 
-        EtherScanAPI api = EtherScanAPI.builder().build();
-        BigInteger etherScanBalanceInEth = api.account().balance(address).getBalanceInWei().asWei();
-
-        if (etherScanBalanceInEth.toString().equals(web3BalanceInEth.toString())) {
-            result.append(web3BalanceInEth);
-
-        } else {
-            result.append("NADA");
-        }
-
-        return ResponseEntity.ok().body(result.toString());
-
-    }
-
-    @Operation(description = "account-transactions", tags = "account-api")
-    @RequestMapping(
-            value = "/account-transactions",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<List<HistoricBalance>> getAccountTransactions(
-            @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
-            throws IOException {
-        EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-        List<HistoricBalance> historicBalanceList = transactionService.getETHTransactionsByAddress(
-                api, address);
-        return ResponseEntity.ok().body(historicBalanceList);
-
-    }
-
-    @Operation(description = "account-transactions", tags = "account-api")
-    @RequestMapping(
-            value = "/historic-performance",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<List<PairPerformance>> getHistoricPerformance(
-            @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address)
-            throws IOException {
-        EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-        List<PairPerformance> historicPerf = transactionService.getHistoricPerformanceByProduct(
-                api, address);
-        return ResponseEntity.ok().body(historicPerf);
-
-    }
+     }
 
 }

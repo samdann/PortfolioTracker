@@ -11,14 +11,14 @@ import lombok.Data;
 public class AddressAssets {
 
     private BigInteger ethBalance;
-    private List<Token> tokens;
+    private List<ERC20Token> ERC20Tokens;
     private List<Transaction> transactions;
 
-    public List<Token> getTokens() {
-        if (tokens == null) {
-            tokens = new ArrayList<>();
+    public List<ERC20Token> getERC20Tokens() {
+        if (ERC20Tokens == null) {
+            ERC20Tokens = new ArrayList<>();
         }
-        return tokens;
+        return ERC20Tokens;
     }
 
     public List<Transaction> getTransactions() {

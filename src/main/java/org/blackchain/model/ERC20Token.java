@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Token {
+public class ERC20Token {
 
     private String tokenName;
     private BigInteger tokenBalance;

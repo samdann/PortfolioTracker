@@ -2,6 +2,7 @@ package org.blackchain.service;
 
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.blackchain.model.coinbase.product.CBProducts;
 import org.blackchain.util.UrlUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -26,20 +28,28 @@ public class ProductService {
     @Autowired
     CoinbaseRestService coinbaseRestService;
 
-    public List<CBProduct> getCoinbaseProducts() {
+    public List<CBProduct> getCoinbaseProducts(final String ticker) {
+        log.info("Reading all products" + (StringUtils.hasLength(ticker)
+                ? " with a ticker: {}" : ""), ticker);
+        final List<CBProduct> result = new ArrayList<>();
 
-        String responseString = executeGetRequest(COINBASE_BASE_URL, COINBASE_PATH_PRODUCTS, null);
+        String responseString = executeGetRequest(COINBASE_BASE_URL,
+                COINBASE_PATH_PRODUCTS, null);
 
         Gson gson = new Gson();
         CBProducts productList = gson.fromJson(responseString, CBProducts.class);
-        return productList.getProducts().stream()
-                .filter(product -> product.getBase_display_symbol().equalsIgnoreCase("BTC"))
-                .toList();
+        if (StringUtils.hasLength(ticker)) {
+            result.addAll(productList.getProducts().stream()
+                    .filter(product -> product.getBase_display_symbol()
+                            .equalsIgnoreCase(ticker)).toList());
+        }
+        return result;
     }
 
     public List<CBCandle> getProductHistoricData(final String productId,
             final Map<String, String> queryParams) {
-        final String requestPath = COINBASE_PATH_PRODUCT_CANDLES.replace("{product_id}", productId);
+        final String requestPath = COINBASE_PATH_PRODUCT_CANDLES.replace("{product_id}",
+                productId);
         String requestParams = UrlUtils.addQueryParams(queryParams);
         String responseString = executeGetRequest(COINBASE_BASE_URL, requestPath,
                 requestParams);

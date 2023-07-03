@@ -8,6 +8,7 @@ import lombok.Data;
 @Builder
 public class HistoricBalance {
 
+    private String assetName;
     private long timeStamp;
     private BigInteger balance;
 }
