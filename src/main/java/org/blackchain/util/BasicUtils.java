@@ -1,5 +1,6 @@
 package org.blackchain.util;
 
+import java.time.Instant;
 import java.util.regex.Pattern;
 import org.blackchain.exception.AccountException;
 
@@ -20,6 +21,10 @@ public class BasicUtils {
 
     public static boolean isNotAddress(String value) {
         return isEmpty(value) || !ADDRESS_PATTERN.matcher(value).matches();
+    }
+
+    public static String instantToStringEpoch(final Instant time) {
+        return String.valueOf(time.toEpochMilli() / 1000);
     }
 
 }

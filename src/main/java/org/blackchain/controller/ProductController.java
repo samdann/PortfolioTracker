@@ -1,5 +1,7 @@
 package org.blackchain.controller;
 
+import static org.blackchain.util.BasicUtils.instantToStringEpoch;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.time.Instant;
@@ -26,22 +28,17 @@ public class ProductController {
     ProductService productService;
 
     @Operation(description = "List of all available products", tags = "coinbase-api")
-    @RequestMapping(
-            value = "/products",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<List<CBProduct>> getListProducts() {
-        return ResponseEntity.ok().body(productService.getCoinbaseProducts());
+    @RequestMapping(value = "/products", produces = {
+            "application/json"}, method = RequestMethod.GET)
+    public ResponseEntity<List<CBProduct>> getListProducts(
+            @Parameter(name = "ticker_name", description = "Ticker of the asset") @RequestParam(value = "ticker_name", required = false) final String tickerName) {
+        return ResponseEntity.ok().body(productService.getCoinbaseProducts(tickerName));
 
     }
 
     @Operation(description = "Historic data of a given product for a given period", tags = "coinbase-api")
-    @RequestMapping(
-            value = "/products/{product_id}/candles",
-            produces = {"application/json"},
-            method = RequestMethod.GET
-    )
+    @RequestMapping(value = "/products/{product_id}/candles", produces = {
+            "application/json"}, method = RequestMethod.GET)
     public ResponseEntity<List<CBCandle>> getProductHistoricData(
             @Parameter(name = "product_id", description = "Id of the product") @RequestParam(value = "product_id", required = true) final String productId,
             @Parameter(name = "start", description = "Start of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "start", required = true) final Instant start,
@@ -50,8 +47,8 @@ public class ProductController {
 
         Map<String, String> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("start", start.toEpochMilli() / 1000 + "");
-        queryParams.put("end", end.toEpochMilli() / 1000 + "");
+        queryParams.put("start", instantToStringEpoch(start));
+        queryParams.put("end", instantToStringEpoch(end));
         queryParams.put("granularity", granularity.toString());
 
         return ResponseEntity.ok()

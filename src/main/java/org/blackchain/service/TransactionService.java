@@ -1,143 +1,240 @@
 package org.blackchain.service;
 
+import static org.blackchain.util.BasicUtils.instantToStringEpoch;
+
 import io.goodforgod.api.etherscan.EtherScanAPI;
-import io.goodforgod.api.etherscan.error.EtherScanException;
-import io.goodforgod.api.etherscan.model.Abi;
-import io.goodforgod.api.etherscan.model.Balance;
-import io.goodforgod.api.etherscan.model.TokenBalance;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
-import io.goodforgod.api.etherscan.model.Wei;
-import java.math.BigInteger;
+import io.goodforgod.api.etherscan.model.TxInternal;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.AddressAssets;
-import org.blackchain.model.Token;
 import org.blackchain.model.Transaction;
+import org.blackchain.model.coinbase.Granularity;
+import org.blackchain.model.coinbase.candle.CBCandle;
+import org.blackchain.model.coinbase.product.CBProduct;
+import org.blackchain.model.etherscan.HistoricBalance;
+import org.blackchain.model.portfolio.AssetPerformance;
+import org.blackchain.model.portfolio.PairPerformance;
+import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import org.web3j.utils.Convert;
+import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @Service
 public class TransactionService {
 
-    private static final String TOKEN_ADDRESS = "";
+     private static final String ETH_USD_PAIR = "ETH-USD";
 
-    @Autowired
-    EtherScanService etherScanService;
+     @Autowired
+     EtherScanService etherScanService;
 
-    public List<Transaction> getETHTransactionsByAddress(final EtherScanAPI api,
-            final String address) {
-        log.info("Retrieving all ETH transactions for address: {}", address);
+     @Autowired
+     ProductService productService;
 
-        final List<Transaction> transactionList = new ArrayList<>();
-        List<Tx> txs = etherScanService.getAccountTransactions(api, address);
-        txs.forEach(tx -> {
-            Transaction transaction = Transaction.builder()
-                    .txHash(tx.getHash())
-                    .blockNumber(tx.getBlockNumber())
-                    .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                    .from(tx.getFrom())
-                    .to(tx.getTo())
-                    .value(tx.getValue())
-                    .gas(tx.getGas().asWei())
-                    .gasUsed(tx.getGasUsed().asWei())
-                    .build();
-            transactionList.add(transaction);
-        });
+     /**
+      * Retrieving a list of historic data over a default period of 300 days
+      *
+      * @param api     EtherScan API
+      * @param address Wallet address on Ethereum
+      * @return List of PairPerformance object containing all historic data
+      */
+     public List<AssetPerformance> getHistoricPerformanceByProduct(final EtherScanAPI api,
+             final String address) {
 
-        final Map<Timestamp, Long> historicBalance = new HashMap<>();
-        transactionList.stream().sorted(
-                (o1, o2) -> Long.compare(o1.getTimestamp(), o2.getTimestamp()));
+          log.info("Retrieving historic performance for address: {}", address);
 
-        return transactionList;
+          final List<AssetPerformance> assetPerformanceList = new ArrayList<>();
 
-    }
+          final Map<String, List<HistoricBalance>> historicBalanceMap = getHistoricBalanceMap(
+                  api, address);
 
-    public AddressAssets getAddressAssets(final EtherScanAPI api, String address) {
+          historicBalanceMap.forEach((key, value) -> {
 
-        log.info("...retrieving all assets for address: {}", address);
-        AddressAssets addressAssets = AddressAssets.builder().build();
-        try {
+               // list of historic prices over a defined period for product {key}
+               List<CBCandle> productHistoricData = getProductCandles(key).stream()
+                       .sorted(Comparator.comparingLong(CBCandle::getTimeStamp)).toList();
+               // determine the oldest timestamp in the candles
+               Optional<Long> minOptional = productHistoricData.stream()
+                       .map(CBCandle::getTimeStamp).min(Comparator.comparingLong(x -> x));
+               Long oldestTime = minOptional.orElse(null);
 
-            // 1 - Eth Balance
-            BigInteger ethBalance = api.account().balance(address).getBalanceInWei().asWei();
-            addressAssets.setEthBalance(ethBalance);
+               //build map for historic balance
+               Map<Long, BigDecimal> balanceMap = value.stream().collect(
+                       Collectors.toMap(HistoricBalance::getTimeStamp,
+                               HistoricBalance::getBalance));
 
-            // 2 - transactions
-            List<Tx> txs = api.account().txs(address);
-            txs.forEach(tx -> {
-                Transaction transaction = Transaction.builder()
-                        .txHash(tx.getHash())
-                        .blockNumber(tx.getBlockNumber())
-                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                        .from(tx.getFrom())
-                        .to(tx.getTo())
-                        .value(tx.getValue())
-                        .gas(tx.getGas().asWei())
-                        .gasUsed(tx.getGasUsed().asWei())
-                        .build();
-                addressAssets.getTransactions().add(transaction);
-            });
+               List<Long> filteredList = new ArrayList<>(
+                       value.stream().map(HistoricBalance::getTimeStamp)
+                               .filter(timeStamp -> timeStamp > oldestTime).toList());
 
-            // 3, ERC20 transactions/tokens
-            List<TxErc20> txErc20s = api.account().txsErc20(address);
-            if (!CollectionUtils.isEmpty(txErc20s)) {
-                List<String> erc20Tokens = getErc20TokenAddresses(txErc20s);
-                erc20Tokens.forEach(tokenAddress -> {
-                    List<TxErc20> erc20s = api.account().txsErc20(address, tokenAddress);
-                    TokenBalance tokenBalance = api.account().balance(address, tokenAddress);
-                    Token token = Token.builder()
-                            .tokenBalance(tokenBalance.getBalanceInWei().asWei())
-                            .numberTx(erc20s.size()).tokenContractAddress(tokenAddress).build();
+               // determine timestamp of transaction: to be used in case all candles are after
+               Optional<Long> maxOptional = value.stream()
+                       .map(HistoricBalance::getTimeStamp)
+                       .max(Comparator.comparingLong(x -> x));
+               Long latestTime = maxOptional.orElse(null);
 
-                    addressAssets.getTokens().add(token);
-                });
-            }
-        } catch (EtherScanException ex) {
-            log.error("...Error retrieving transactions: {}", ex.getMessage());
-        }
-        log.info("...successfully retrieved assets for address: {}", address);
-        return addressAssets;
-    }
+               final List<PairPerformance> result = new ArrayList<>();
+               productHistoricData.forEach(data -> {
+                    long initialPoint =
+                            !filteredList.isEmpty() ? filteredList.get(0) : latestTime;
+                    if (data.getTimeStamp() > initialPoint && filteredList.size() > 1) {
+                         filteredList.remove(0);
+                         initialPoint = filteredList.get(0);
+                    }
 
-    private List<String> getErc20TokenAddresses(final List<TxErc20> txs) {
-        return txs.stream().map(tx -> tx.getContractAddress()).filter(address -> !address.isEmpty())
-                .distinct()
-                .collect(Collectors.toList());
-    }
+                    BigDecimal amount = balanceMap.get(initialPoint);
+                    BigDecimal price = data.getClose();
+                    PairPerformance pair = PairPerformance.builder().amount(amount)
+                            .time(data.getTimeStamp()).price(price)
+                            .pairKey(key + "-" + EthereumUtils.SUPPORTED_CURRENCIES)
+                            .marketValue(price.multiply(amount)).build();
 
-    private void check(EtherScanAPI api, String address, String txHash) {
+                    result.add(pair);
 
-        //balance of an address
-        List<Balance> balances = api.account().balances(Arrays.asList(address, address));
+               });
 
-        //all transactions of an address (limit to 10k)
-        List<Tx> txs = api.account().txs(address);
+               AssetPerformance assetPerformance = AssetPerformance.builder()
+                       .assetName(key).performanceList(result).build();
+               assetPerformanceList.add(assetPerformance);
 
-        // list of all erc20 transactions of a specific token for a given address
-        List<TxErc20> txErc20s = api.account().txsErc20(address, TOKEN_ADDRESS);
+          });
 
-        // all internal transactions : need to be checked.
-        api.account().txsInternal(address);
+          return assetPerformanceList;
+     }
 
-        // search transaction by hash.
-        api.account().txsInternalByHash(txHash);
+     /*
+      * Builds a balance for a given token based on the in / out transactions value.
+      */
+     private Map<String, List<HistoricBalance>> getHistoricBalanceMap(
+             final EtherScanAPI api, final String address) {
 
-        // contract abi
-        Abi contractAbi = api.contract().contractAbi(TOKEN_ADDRESS);
+          final Map<String, List<HistoricBalance>> result = new HashMap<>();
 
-        Duration estimate = api.gasTracker().estimate(Wei.ofWei(12));
+          final Map<String, List<Transaction>> transactionsByToken = getTransactionsByToken(
+                  api, address);
+          transactionsByToken.forEach((key, value) -> {
+               final List<HistoricBalance> balanceList = new ArrayList<>();
+               List<Transaction> sortedList = value.stream()
+                       .sorted(Comparator.comparingLong(Transaction::getTimestamp))
+                       .toList();
 
+               BigDecimal balance = BigDecimal.valueOf(0);
+               for (Transaction tx : sortedList) {
+                    balance = address.equals(tx.getTo()) ? balance.add(tx.getValue())
+                            : balance.subtract(tx.getValue());
+                    HistoricBalance historicBalance = HistoricBalance.builder()
+                            .balance(balance).timeStamp(tx.getTimestamp()).build();
+                    balanceList.add(historicBalance);
 
-    }
+               }
 
+               result.putIfAbsent(key, balanceList);
+
+          });
+
+          return result;
+     }
+
+     /**
+      * Groups all transactions of a given address by token name.
+      *
+      * @param api     EtherScan API
+      * @param address Wallet address on Ethereum
+      * @return Map containing all transactions by token
+      */
+     private Map<String, List<Transaction>> getTransactionsByToken(final EtherScanAPI api,
+             final String address) {
+          log.info("Retrieving all ETH transactions for address: {}", address);
+
+          final List<Transaction> transactionList = new ArrayList<>();
+          // 1 - normal transactions
+          List<Tx> txs = etherScanService.getAccountTransactions(api, address);
+          txs.forEach(tx -> {
+               Transaction transaction = Transaction.builder().txHash(tx.getHash())
+                       .blockNumber(tx.getBlockNumber())
+                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
+                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
+                       .tokenName(EthereumUtils.ETHEREUM_NAME)
+                       .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+               transactionList.add(transaction);
+          });
+
+          // 2 - internal transactions
+          List<TxInternal> internalTxs = etherScanService.getAccountInternalTransactions(
+                  api, address);
+          internalTxs.forEach(tx -> {
+               Transaction transaction = Transaction.builder().txHash(tx.getHash())
+                       .blockNumber(tx.getBlockNumber())
+                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
+                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
+                       .tokenName(EthereumUtils.ETHEREUM_NAME)
+                       .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+               transactionList.add(transaction);
+          });
+
+          // 3 - ERC20 transactions
+          List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(api, address);
+          erc20Txs.forEach(tx -> {
+               Transaction transaction = Transaction.builder().txHash(tx.getHash())
+                       .blockNumber(tx.getBlockNumber())
+                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(EthereumUtils.convertWithTokenDecimal(
+                               tx.getValue().toString(), tx.getTokenDecimal()))
+                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
+                       .tokenSymbol(tx.getTokenSymbol()).tokenName(tx.getTokenName())
+                       .build();
+               transactionList.add(transaction);
+          });
+
+          final Map<String, List<Transaction>> transactionsByToken = new HashMap<>();
+          transactionList.forEach(tx -> {
+               if (EthereumUtils.SUPPORTED_TOKENS.contains(tx.getTokenSymbol())) {
+                    transactionsByToken.putIfAbsent(tx.getTokenSymbol(),
+                            new ArrayList<>());
+                    transactionsByToken.get(tx.getTokenSymbol()).add(tx);
+               }
+
+          });
+
+          return transactionsByToken;
+     }
+
+     private List<CBCandle> getProductCandles(final String ticker) {
+
+          List<CBProduct> coinbaseProducts = productService.getCoinbaseProducts(ticker);
+          final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
+                  : coinbaseProducts.get(0).getProduct_id();
+
+          // initializing the start & end
+          Instant now = Instant.now();
+          String end = instantToStringEpoch(now);
+          String start = instantToStringEpoch(now.minus(60, ChronoUnit.DAYS));
+
+          // building the queryParams
+          Map<String, String> queryParams = new LinkedHashMap<>();
+          queryParams.put("start", start);
+          queryParams.put("end", end);
+          queryParams.put("granularity", Granularity.ONE_DAY.toString());
+
+          return productService.getProductHistoricData(productId, queryParams);
+
+     }
 }
