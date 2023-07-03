@@ -22,4 +22,10 @@ public class EthereumUtils {
      public static BigDecimal asEther(BigInteger wei) {
           return new BigDecimal(wei).divide(WEI_POW, RoundingMode.HALF_UP);
      }
+
+     public static BigDecimal convertWithTokenDecimal(final String value,
+             final String tokenDecimal) {
+          BigDecimal pow = BigDecimal.TEN.pow(Integer.parseInt(tokenDecimal));
+          return new BigDecimal(value).divide(pow);
+     }
 }

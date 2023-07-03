@@ -7,10 +7,8 @@ import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.TxInternal;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -19,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.Transaction;
@@ -75,7 +72,7 @@ public class TransactionService {
                Long oldestTime = minOptional.orElse(null);
 
                //build map for historic balance
-               Map<Long, BigInteger> balanceMap = value.stream().collect(
+               Map<Long, BigDecimal> balanceMap = value.stream().collect(
                        Collectors.toMap(HistoricBalance::getTimeStamp,
                                HistoricBalance::getBalance));
 
@@ -98,15 +95,13 @@ public class TransactionService {
                          initialPoint = filteredList.get(0);
                     }
 
-                    BigInteger amount = balanceMap.get(initialPoint);
-                    BigDecimal amountInEth = Convert.fromWei(String.valueOf(amount),
-                            Unit.ETHER);
-
+                    BigDecimal amount = balanceMap.get(initialPoint);
                     BigDecimal price = data.getClose();
-                    PairPerformance pair = PairPerformance.builder()
-                            .time(data.getTimeStamp()).amountInEth(amountInEth)
-                            .price(price).token(ETH_USD_PAIR)
-                            .marketValue(price.multiply(amountInEth)).build();
+                    PairPerformance pair = PairPerformance.builder().amount(amount)
+                            .time(data.getTimeStamp()).price(price)
+                            .pairKey(key + "-" + EthereumUtils.SUPPORTED_CURRENCIES)
+                            .marketValue(price.multiply(amount)).build();
+
                     result.add(pair);
 
                });
@@ -136,18 +131,14 @@ public class TransactionService {
                        .sorted(Comparator.comparingLong(Transaction::getTimestamp))
                        .toList();
 
-               BigInteger balance = BigInteger.valueOf(0);
+               BigDecimal balance = BigDecimal.valueOf(0);
                for (Transaction tx : sortedList) {
                     balance = address.equals(tx.getTo()) ? balance.add(tx.getValue())
                             : balance.subtract(tx.getValue());
                     HistoricBalance historicBalance = HistoricBalance.builder()
                             .balance(balance).timeStamp(tx.getTimestamp()).build();
                     balanceList.add(historicBalance);
-                    log.info("Balance on {} is: {} - {}.", LocalDateTime.ofInstant(
-                                    Instant.ofEpochMilli(historicBalance.getTimeStamp()),
-                                    TimeZone.getDefault().toZoneId()),
-                            EthereumUtils.asEther(historicBalance.getBalance()),
-                            tx.getTokenSymbol());
+
                }
 
                result.putIfAbsent(key, balanceList);
@@ -175,7 +166,8 @@ public class TransactionService {
                Transaction transaction = Transaction.builder().txHash(tx.getHash())
                        .blockNumber(tx.getBlockNumber())
                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo()).value(tx.getValue())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
                        .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
                        .tokenName(EthereumUtils.ETHEREUM_NAME)
                        .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
@@ -189,7 +181,8 @@ public class TransactionService {
                Transaction transaction = Transaction.builder().txHash(tx.getHash())
                        .blockNumber(tx.getBlockNumber())
                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo()).value(tx.getValue())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
                        .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
                        .tokenName(EthereumUtils.ETHEREUM_NAME)
                        .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
@@ -202,7 +195,9 @@ public class TransactionService {
                Transaction transaction = Transaction.builder().txHash(tx.getHash())
                        .blockNumber(tx.getBlockNumber())
                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo()).value(tx.getValue())
+                       .from(tx.getFrom()).to(tx.getTo())
+                       .value(EthereumUtils.convertWithTokenDecimal(
+                               tx.getValue().toString(), tx.getTokenDecimal()))
                        .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
                        .tokenSymbol(tx.getTokenSymbol()).tokenName(tx.getTokenName())
                        .build();

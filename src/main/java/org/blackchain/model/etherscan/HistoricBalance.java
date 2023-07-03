@@ -1,6 +1,6 @@
 package org.blackchain.model.etherscan;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,5 +9,5 @@ import lombok.Data;
 public class HistoricBalance {
 
      private long timeStamp;
-     private BigInteger balance;
+     private BigDecimal balance;
 }

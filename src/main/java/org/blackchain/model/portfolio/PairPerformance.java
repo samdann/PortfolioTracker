@@ -9,9 +9,8 @@ import lombok.Data;
 public class PairPerformance {
 
      private long time;
-     private BigDecimal amountInEth;
-     private BigDecimal amountInToken;
+     private BigDecimal amount;
      private BigDecimal price;
-     private String token;
+     private String pairKey;
      private BigDecimal marketValue;
 }

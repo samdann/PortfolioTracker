@@ -1,5 +1,6 @@
 package org.blackchain.model;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ public class Transaction {
      private long timestamp;
      private String from;
      private String to;
-     private BigInteger value;
+     private BigDecimal value;
      private BigInteger gas;
      private BigInteger gasUsed;
 
