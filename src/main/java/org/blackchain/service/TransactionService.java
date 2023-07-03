@@ -34,6 +34,8 @@ import org.blackchain.util.EtherUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.web3j.utils.Convert;
+import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @Service
@@ -140,20 +142,19 @@ public class TransactionService {
             }
 
             BigInteger amount = balanceMap.get(initialPoint);
+            BigDecimal amountInEth = Convert.fromWei(String.valueOf(amount), Unit.ETHER);
             BigDecimal price = data.getClose();
             PairPerformance pair = PairPerformance.builder()
                     .time(data.getTimeStamp())
-                    .amount(amount.divide(
-                            BigInteger.valueOf(Double.valueOf(Math.pow(10, 18)).longValue())))
+                    .amountInEth(amountInEth)
                     .price(price)
                     .token(ETH_USD_PAIR)
-                    .marketValue(price.multiply(new BigDecimal(amount)))
+                    .marketValue(price.multiply(amountInEth))
                     .build();
             result.add(pair);
 
 
         });
-
         return result;
     }
 

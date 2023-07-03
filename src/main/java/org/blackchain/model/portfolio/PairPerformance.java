@@ -1,7 +1,6 @@
 package org.blackchain.model.portfolio;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,7 +9,7 @@ import lombok.Data;
 public class PairPerformance {
 
     private long time;
-    private BigInteger amount;
+    private BigDecimal amountInEth;
     private BigDecimal price;
     private String token;
     private BigDecimal marketValue;
