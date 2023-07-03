@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.portfolio.PairPerformance;
+import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.service.EtherScanService;
 import org.blackchain.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,12 +50,12 @@ public class AccountController {
      @Operation(description = "account-transactions", tags = "account-api")
      @RequestMapping(value = "/historic-performance", produces = {
              "application/json"}, method = RequestMethod.GET)
-     public ResponseEntity<List<PairPerformance>> getHistoricPerformance(
+     public ResponseEntity<List<AssetPerformance>> getHistoricPerformance(
              @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address) {
           EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-          List<PairPerformance> historicPerf = transactionService.getHistoricPerformanceByProduct(
+          List<AssetPerformance> assetPerformances = transactionService.getHistoricPerformanceByProduct(
                   api, address);
-          return ResponseEntity.ok().body(historicPerf);
+          return ResponseEntity.ok().body(assetPerformances);
 
      }
 

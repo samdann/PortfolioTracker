@@ -19,69 +19,63 @@ import org.springframework.stereotype.Service;
 @Service
 public class CoinbaseRestService implements RestAPI {
 
-    private static final String CB_ACCESS_KEY = "cb-access-key";
-    private static final String CB_ACCESS_SECRET = "cb-access-passphrase";
-    private static final String CB_ACCESS_TIMESTAMP = "cb-access-timestamp";
-    private static final String CB_ACCESS_SIGN = "cb-access-sign";
-    private static final String HMAC_SHA_256 = "HmacSHA256";
+     private static final String CB_ACCESS_KEY = "cb-access-key";
+     private static final String CB_ACCESS_SECRET = "cb-access-passphrase";
+     private static final String CB_ACCESS_TIMESTAMP = "cb-access-timestamp";
+     private static final String CB_ACCESS_SIGN = "cb-access-sign";
+     private static final String HMAC_SHA_256 = "HmacSHA256";
 
+     @Value("${coinbase.api.key}")
+     private String coinbaseApiKey;
 
-    @Value("${coinbase.api.key}")
-    private String coinbaseApiKey;
+     @Value("${coinbase.api.passphrase}")
+     private String coinbaseApiPassPhrase;
 
-    @Value("${coinbase.api.passphrase}")
-    private String coinbaseApiPassPhrase;
+     @Override
+     public ResponseBody executeGetRequest(final String baseUrl, final String requestPath,
+             final String requestParams, final String body) {
+          OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-    @Override
-    public ResponseBody executeGetRequest(final String baseUrl, final String requestPath,
-            final String requestParams,
-            final String body) {
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
+          String method = "GET";
+          String timestamp = new Date().getTime() / 1000L + "";
+          String signature = getSignature(timestamp, method, requestPath, body);
 
-        String method = "GET";
-        String timestamp = new Date().getTime() / 1000L + "";
-        String signature = getSignature(timestamp, method, requestPath, body);
+          Request request = new Request.Builder().url(
+                          baseUrl + requestPath + (requestParams != null ? requestParams : ""))
+                  .addHeader("Content-Type", "application/json; charset=utf-8")
+                  .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
+                  .addHeader(CB_ACCESS_SECRET, coinbaseApiPassPhrase)
+                  .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
+                  .addHeader(CB_ACCESS_SIGN, signature).build();
 
-        Request request = new Request.Builder()
-                .url(baseUrl + requestPath + requestParams)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .addHeader(CB_ACCESS_KEY, coinbaseApiKey)
-                .addHeader(CB_ACCESS_SECRET, coinbaseApiPassPhrase)
-                .addHeader(CB_ACCESS_TIMESTAMP, timestamp)
-                .addHeader(CB_ACCESS_SIGN, signature)
-                .build();
+          ResponseBody responseBody = null;
+          try {
+               responseBody = client.newCall(request).execute().body();
+          } catch (IOException e) {
+               throw new RuntimeException(e);
+          }
+          assert responseBody != null;
+          return responseBody;
+     }
 
-        ResponseBody responseBody = null;
-        try {
-            responseBody = client.newCall(request).execute().body();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        assert responseBody != null;
-        return responseBody;
-    }
-    
+     private String getSignature(final String timeStamp, final String method,
+             final String path, final String body) {
 
-    private String getSignature(final String timeStamp, final String method, final String path,
-            final String body) {
+          String message = timeStamp + method + path + ((body == null) ? "" : body);
+          byte[] secretKey = coinbaseApiPassPhrase.getBytes(StandardCharsets.UTF_8);
 
-        String message = timeStamp + method + path + ((body == null) ? "" : body);
-        byte[] secretKey = coinbaseApiPassPhrase.getBytes(StandardCharsets.UTF_8);
+          String hmacSha256 = null;
+          try {
+               Mac mac = Mac.getInstance(HMAC_SHA_256);
+               SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, HMAC_SHA_256);
+               mac.init(secretKeySpec);
+               hmacSha256 = Hex.encodeHexString(
+                       mac.doFinal(message.getBytes(StandardCharsets.UTF_8)));
 
-        String hmacSha256 = null;
-        try {
-            Mac mac = Mac.getInstance(HMAC_SHA_256);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, HMAC_SHA_256);
-            mac.init(secretKeySpec);
-            hmacSha256 = Hex.encodeHexString(mac.doFinal(message.getBytes(StandardCharsets.UTF_8)));
-
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to calculate hmac-sha256", e);
-        }
-        return hmacSha256;
-    }
-
+          } catch (Exception e) {
+               throw new RuntimeException("Failed to calculate hmac-sha256", e);
+          }
+          return hmacSha256;
+     }
 
 }
