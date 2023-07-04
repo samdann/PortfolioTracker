@@ -103,7 +103,6 @@ public class TransactionService {
                             .marketValue(price.multiply(amount)).build();
 
                     result.add(pair);
-
                });
 
                AssetPerformance assetPerformance = AssetPerformance.builder()
@@ -140,9 +139,7 @@ public class TransactionService {
                     balanceList.add(historicBalance);
 
                }
-
                result.putIfAbsent(key, balanceList);
-
           });
 
           return result;
