@@ -74,7 +74,7 @@ public class TransactionService {
                //build map for historic balance
                Map<Long, BigDecimal> balanceMap = value.stream().collect(
                        Collectors.toMap(HistoricBalance::getTimeStamp,
-                               HistoricBalance::getBalance));
+                               HistoricBalance::getBalance, (a, b) -> (b)));
 
                List<Long> filteredList = new ArrayList<>(
                        value.stream().map(HistoricBalance::getTimeStamp)
@@ -156,34 +156,40 @@ public class TransactionService {
              final String address) {
           log.info("Retrieving all ETH transactions for address: {}", address);
 
+          EthereumUtils.validateAddress(address);
+
           final List<Transaction> transactionList = new ArrayList<>();
           // 1 - normal transactions
           List<Tx> txs = etherScanService.getAccountTransactions(api, address);
           txs.forEach(tx -> {
-               Transaction transaction = Transaction.builder().txHash(tx.getHash())
-                       .blockNumber(tx.getBlockNumber())
-                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo())
-                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                       .tokenName(EthereumUtils.ETHEREUM_NAME)
-                       .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
-               transactionList.add(transaction);
+               if (!tx.haveError()) {
+                    Transaction transaction = Transaction.builder().txHash(tx.getHash())
+                            .blockNumber(tx.getBlockNumber())
+                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                            .from(tx.getFrom()).to(tx.getTo())
+                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
+                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
+                            .tokenName(EthereumUtils.ETHEREUM_NAME)
+                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+                    transactionList.add(transaction);
+               }
           });
 
           // 2 - internal transactions
           List<TxInternal> internalTxs = etherScanService.getAccountInternalTransactions(
                   api, address);
           internalTxs.forEach(tx -> {
-               Transaction transaction = Transaction.builder().txHash(tx.getHash())
-                       .blockNumber(tx.getBlockNumber())
-                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo())
-                       .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                       .tokenName(EthereumUtils.ETHEREUM_NAME)
-                       .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
-               transactionList.add(transaction);
+               if (!tx.haveError()) {
+                    Transaction transaction = Transaction.builder().txHash(tx.getHash())
+                            .blockNumber(tx.getBlockNumber())
+                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
+                            .from(tx.getFrom()).to(tx.getTo())
+                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
+                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
+                            .tokenName(EthereumUtils.ETHEREUM_NAME)
+                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+                    transactionList.add(transaction);
+               }
           });
 
           // 3 - ERC20 transactions
@@ -223,7 +229,7 @@ public class TransactionService {
           // initializing the start & end
           Instant now = Instant.now();
           String end = instantToStringEpoch(now);
-          String start = instantToStringEpoch(now.minus(60, ChronoUnit.DAYS));
+          String start = instantToStringEpoch(now.minus(299, ChronoUnit.DAYS));
 
           // building the queryParams
           Map<String, String> queryParams = new LinkedHashMap<>();

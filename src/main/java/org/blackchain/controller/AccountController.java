@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.service.EtherScanService;
 import org.blackchain.service.TransactionService;
+import org.blackchain.util.DataUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -53,8 +54,10 @@ public class AccountController {
      public ResponseEntity<List<AssetPerformance>> getHistoricPerformance(
              @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address) {
           EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-          List<AssetPerformance> assetPerformances = transactionService.getHistoricPerformanceByProduct(
-                  api, address);
+          List<AssetPerformance> assetPerformances =
+                  "1".equals(address) ? DataUtils.getAssetPerformanceList()
+                          : transactionService.getHistoricPerformanceByProduct(api,
+                                  address);
           return ResponseEntity.ok().body(assetPerformances);
 
      }

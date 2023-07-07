@@ -81,6 +81,9 @@ public class EtherScanService {
                }
           }
 
+          log.info("Found {} ERC20 transactions for address {}", txErc20s.size(),
+                  address);
+
           return txErc20s;
      }
 
