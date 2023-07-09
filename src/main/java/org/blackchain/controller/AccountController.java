@@ -52,12 +52,13 @@ public class AccountController {
      @RequestMapping(value = "/historic-performance", produces = {
              "application/json"}, method = RequestMethod.GET)
      public ResponseEntity<List<AssetPerformance>> getHistoricPerformance(
-             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address) {
+             @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address,
+             @Parameter(name = "granularity", description = "Candles granularity") @RequestParam(value = "granularity", required = false) final String granularity) {
           EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
           List<AssetPerformance> assetPerformances =
                   "1".equals(address) ? DataUtils.getAssetPerformanceList()
                           : transactionService.getHistoricPerformanceByProduct(api,
-                                  address);
+                                  address, granularity);
           return ResponseEntity.ok().body(assetPerformances);
 
      }

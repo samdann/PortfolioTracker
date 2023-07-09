@@ -29,6 +29,7 @@ import org.blackchain.model.portfolio.PairPerformance;
 import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Convert.Unit;
 
@@ -52,7 +53,7 @@ public class TransactionService {
       * @return List of PairPerformance object containing all historic data
       */
      public List<AssetPerformance> getHistoricPerformanceByProduct(final EtherScanAPI api,
-             final String address) {
+             final String address, final String granularity) {
 
           log.info("Retrieving historic performance for address: {}", address);
 
@@ -64,7 +65,8 @@ public class TransactionService {
           historicBalanceMap.forEach((key, value) -> {
 
                // list of historic prices over a defined period for product {key}
-               List<CBCandle> productHistoricData = getProductCandles(key).stream()
+               List<CBCandle> productHistoricData = getProductCandles(key,
+                       granularity).stream()
                        .sorted(Comparator.comparingLong(CBCandle::getTimeStamp)).toList();
                // determine the oldest timestamp in the candles
                Optional<Long> minOptional = productHistoricData.stream()
@@ -132,8 +134,9 @@ public class TransactionService {
 
                BigDecimal balance = BigDecimal.valueOf(0);
                for (Transaction tx : sortedList) {
-                    balance = address.equals(tx.getTo()) ? balance.add(tx.getValue())
-                            : balance.subtract(tx.getValue());
+                    balance = address.equalsIgnoreCase(tx.getTo()) ? balance.add(
+                            tx.getValue()) : balance.subtract(tx.getValue());
+                    assert (balance.intValue() >= 0);
                     HistoricBalance historicBalance = HistoricBalance.builder()
                             .balance(balance).timeStamp(tx.getTimestamp()).build();
                     balanceList.add(historicBalance);
@@ -220,7 +223,8 @@ public class TransactionService {
           return transactionsByToken;
      }
 
-     private List<CBCandle> getProductCandles(final String ticker) {
+     private List<CBCandle> getProductCandles(final String ticker,
+             final String granularity) {
 
           List<CBProduct> coinbaseProducts = productService.getCoinbaseProducts(ticker);
           final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
@@ -235,7 +239,8 @@ public class TransactionService {
           Map<String, String> queryParams = new LinkedHashMap<>();
           queryParams.put("start", start);
           queryParams.put("end", end);
-          queryParams.put("granularity", Granularity.ONE_DAY.toString());
+          queryParams.put("granularity", StringUtils.hasLength(granularity) ? granularity
+                  : Granularity.ONE_DAY.toString());
 
           return productService.getProductHistoricData(productId, queryParams);
 
