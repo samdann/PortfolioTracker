@@ -233,7 +233,7 @@ public class TransactionService {
           // initializing the start & end
           Instant now = Instant.now();
           String end = instantToStringEpoch(now);
-          String start = instantToStringEpoch(now.minus(299, ChronoUnit.DAYS));
+          String start = calculateStart(granularity, now);
 
           // building the queryParams
           Map<String, String> queryParams = new LinkedHashMap<>();
@@ -244,5 +244,19 @@ public class TransactionService {
 
           return productService.getProductHistoricData(productId, queryParams);
 
+     }
+
+     private String calculateStart(final String granularity, final Instant now) {
+          int numberItems = 300;
+          ChronoUnit chronoUnit = null;
+          switch (granularity) {
+               case "ONE_MINUTE" -> chronoUnit = ChronoUnit.MINUTES;
+               case "FIVE_MINUTE" -> {
+                    chronoUnit = ChronoUnit.MINUTES;
+                    numberItems *= 5;
+               }
+               default -> chronoUnit = ChronoUnit.DAYS;
+          }
+          return instantToStringEpoch(now.minus(numberItems, chronoUnit));
      }
 }
