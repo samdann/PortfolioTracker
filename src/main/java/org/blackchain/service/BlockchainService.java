@@ -13,14 +13,14 @@ public class BlockchainService {
 
      private static final String URL = "https://blockchain.info/rawaddr/";
 
-     public String executeGetRequest() {
+     public String executeGetRequest(final String requestPath) {
           OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-          String url = URL + "3Fb3VStsZfAV3KHLVuFuRNLQLDzgH4BKby";
+          String url = URL + requestPath;
           Request request = new Request.Builder().url(url)
                   .addHeader("Content-Type", "application/json").build();
 
-          ResponseBody responseBody = null;
+          ResponseBody responseBody;
           try {
                responseBody = client.newCall(request).execute().body();
           } catch (IOException e) {
@@ -28,7 +28,7 @@ public class BlockchainService {
           }
           assert responseBody != null;
 
-          String responseString = null;
+          String responseString;
           try {
                responseString = responseBody.string();
           } catch (IOException e) {

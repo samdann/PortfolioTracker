@@ -1,4 +1,4 @@
-package org.blackchain.api.http;
+package org.blackchain.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @PropertySource("secret.properties")
 @Service
-public class CoinbaseRestService implements RestAPI {
+public class CoinbaseRestService {
 
      private static final String CB_ACCESS_KEY = "cb-access-key";
      private static final String CB_ACCESS_SECRET = "cb-access-passphrase";
@@ -31,8 +31,7 @@ public class CoinbaseRestService implements RestAPI {
      @Value("${coinbase.api.passphrase}")
      private String coinbaseApiPassPhrase;
 
-     @Override
-     public ResponseBody executeGetRequest(final String baseUrl, final String requestPath,
+     public String executeGetRequest(final String baseUrl, final String requestPath,
              final String requestParams, final String body) {
           OkHttpClient client = new OkHttpClient().newBuilder().build();
 
@@ -55,7 +54,16 @@ public class CoinbaseRestService implements RestAPI {
                throw new RuntimeException(e);
           }
           assert responseBody != null;
-          return responseBody;
+
+          String responseString;
+          try {
+               responseString = responseBody.string();
+          } catch (IOException e) {
+               log.error("Error reading response body: {}", e.getMessage());
+               return null;
+          }
+          log.info(responseString);
+          return responseString;
      }
 
      private String getSignature(final String timeStamp, final String method,
