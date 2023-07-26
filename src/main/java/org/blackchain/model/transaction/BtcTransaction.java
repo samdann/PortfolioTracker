@@ -1,11 +1,14 @@
 package org.blackchain.model.transaction;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 import org.blackchain.model.Transaction;
 
 @Data
-@Builder
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 public class BtcTransaction extends Transaction {
 
+     private String namee;
 }

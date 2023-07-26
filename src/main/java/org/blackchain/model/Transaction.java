@@ -1,17 +1,17 @@
 package org.blackchain.model;
 
 import java.math.BigDecimal;
-import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 public abstract class Transaction {
 
-     protected String txHash;
-     protected long blockNumber;
-     protected long timestamp;
-     protected String from;
-     protected String to;
-     protected BigDecimal value;
+     private String txHash;
+     private long blockNumber;
+     private long timestamp;
+     private String from;
+     private String to;
+     private BigDecimal value;
 }
