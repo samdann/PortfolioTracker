@@ -13,7 +13,7 @@ public class BlockchainServiceTest {
 
      @Test
      public void testExecuteGetRequest() {
-          final String url = "3Fb3VStsZfAV3KHLVuFuRNLQLDzgH4BKby";
+          final String url = "1EEQKfgJxZ5Ci1B2wmFsAbrnfxM98SVTat";
           String string = service.executeGetRequest(url);
 
           //Mockito.verify(string).isEmpty();

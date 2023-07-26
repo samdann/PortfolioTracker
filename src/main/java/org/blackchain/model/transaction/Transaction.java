@@ -1,4 +1,4 @@
-package org.blackchain.model;
+package org.blackchain.model.transaction;
 
 import java.math.BigDecimal;
 import lombok.Data;

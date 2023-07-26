@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.Transaction;
 import org.blackchain.model.coinbase.Granularity;
 import org.blackchain.model.coinbase.candle.CBCandle;
 import org.blackchain.model.coinbase.product.CBProduct;
@@ -27,6 +26,7 @@ import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.model.portfolio.PairPerformance;
 import org.blackchain.model.transaction.EthTransaction;
+import org.blackchain.model.transaction.Transaction;
 import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,7 +44,7 @@ public class TransactionService {
      EtherScanService etherScanService;
 
      @Autowired
-     ProductService productService;
+     CoinbaseService coinbaseService;
 
      /**
       * Retrieving a list of historic data over a default period of 300 days
@@ -228,7 +228,7 @@ public class TransactionService {
      private List<CBCandle> getProductCandles(final String ticker,
              final String granularity) {
 
-          List<CBProduct> coinbaseProducts = productService.getCoinbaseProducts(ticker);
+          List<CBProduct> coinbaseProducts = coinbaseService.getCoinbaseProducts(ticker);
           final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
                   : coinbaseProducts.get(0).getProduct_id();
 
@@ -244,7 +244,7 @@ public class TransactionService {
           queryParams.put("granularity", StringUtils.hasLength(granularity) ? granularity
                   : Granularity.ONE_DAY.toString());
 
-          return productService.getProductHistoricData(productId, queryParams);
+          return coinbaseService.getProductHistoricData(productId, queryParams);
 
      }
 

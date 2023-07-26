@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.coinbase.Granularity;
 import org.blackchain.model.coinbase.candle.CBCandle;
 import org.blackchain.model.coinbase.product.CBProduct;
-import org.blackchain.service.ProductService;
+import org.blackchain.service.CoinbaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,34 +24,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProductController {
 
-    @Autowired
-    ProductService productService;
+     @Autowired
+     CoinbaseService coinbaseService;
 
-    @Operation(description = "List of all available products", tags = "coinbase-api")
-    @RequestMapping(value = "/products", produces = {
-            "application/json"}, method = RequestMethod.GET)
-    public ResponseEntity<List<CBProduct>> getListProducts(
-            @Parameter(name = "ticker_name", description = "Ticker of the asset") @RequestParam(value = "ticker_name", required = false) final String tickerName) {
-        return ResponseEntity.ok().body(productService.getCoinbaseProducts(tickerName));
+     @Operation(description = "List of all available products", tags = "coinbase-api")
+     @RequestMapping(value = "/products", produces = {
+             "application/json"}, method = RequestMethod.GET)
+     public ResponseEntity<List<CBProduct>> getListProducts(
+             @Parameter(name = "ticker_name", description = "Ticker of the asset") @RequestParam(value = "ticker_name", required = false) final String tickerName) {
+          return ResponseEntity.ok()
+                  .body(coinbaseService.getCoinbaseProducts(tickerName));
 
-    }
+     }
 
-    @Operation(description = "Historic data of a given product for a given period", tags = "coinbase-api")
-    @RequestMapping(value = "/products/{product_id}/candles", produces = {
-            "application/json"}, method = RequestMethod.GET)
-    public ResponseEntity<List<CBCandle>> getProductHistoricData(
-            @Parameter(name = "product_id", description = "Id of the product") @RequestParam(value = "product_id", required = true) final String productId,
-            @Parameter(name = "start", description = "Start of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "start", required = true) final Instant start,
-            @Parameter(name = "end", description = "End of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "end", required = true) Instant end,
-            @Parameter(name = "granularity", description = "time scale of each candle") @RequestParam(value = "granularity", required = true) Granularity granularity) {
+     @Operation(description = "Historic data of a given product for a given period", tags = "coinbase-api")
+     @RequestMapping(value = "/products/{product_id}/candles", produces = {
+             "application/json"}, method = RequestMethod.GET)
+     public ResponseEntity<List<CBCandle>> getProductHistoricData(
+             @Parameter(name = "product_id", description = "Id of the product") @RequestParam(value = "product_id", required = true) final String productId,
+             @Parameter(name = "start", description = "Start of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "start", required = true) final Instant start,
+             @Parameter(name = "end", description = "End of the period. Must conform to ISO-8601 format (yyyy-MM-dd'T'HH:mm:ssZ)") @RequestParam(value = "end", required = true) Instant end,
+             @Parameter(name = "granularity", description = "time scale of each candle") @RequestParam(value = "granularity", required = true) Granularity granularity) {
 
-        Map<String, String> queryParams = new LinkedHashMap<>();
+          Map<String, String> queryParams = new LinkedHashMap<>();
 
-        queryParams.put("start", instantToStringEpoch(start));
-        queryParams.put("end", instantToStringEpoch(end));
-        queryParams.put("granularity", granularity.toString());
+          queryParams.put("start", instantToStringEpoch(start));
+          queryParams.put("end", instantToStringEpoch(end));
+          queryParams.put("granularity", granularity.toString());
 
-        return ResponseEntity.ok()
-                .body(productService.getProductHistoricData(productId, queryParams));
-    }
+          return ResponseEntity.ok()
+                  .body(coinbaseService.getProductHistoricData(productId, queryParams));
+     }
 }
