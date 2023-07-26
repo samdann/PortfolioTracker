@@ -13,4 +13,9 @@ public class BlockchainTx {
      private BigInteger result;
      private BigInteger balance;
 
+     @Override
+     public String toString() {
+          return "BlockchainTx{" + "fee=" + fee + ", time=" + time + ", result=" + result
+                  + ", balance=" + balance + '}';
+     }
 }

@@ -1,10 +1,12 @@
 package org.blackchain.service;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
+import org.blackchain.model.blockchain.com.BlockchainAddress;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -12,6 +14,16 @@ import org.springframework.stereotype.Service;
 public class BlockchainService {
 
      private static final String URL = "https://blockchain.info/rawaddr/";
+
+     public BlockchainAddress getBitcoinAddress(final String address) {
+          String responseString = executeGetRequest(address);
+          Gson gson = new Gson();
+          BlockchainAddress blockchainAddress = gson.fromJson(responseString,
+                  BlockchainAddress.class);
+
+          log.info(blockchainAddress.toString());
+          return blockchainAddress;
+     }
 
      public String executeGetRequest(final String requestPath) {
           OkHttpClient client = new OkHttpClient().newBuilder().build();

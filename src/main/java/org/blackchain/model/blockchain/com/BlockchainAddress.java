@@ -11,4 +11,9 @@ public class BlockchainAddress {
      private String address;
      private List<BlockchainTx> txs;
 
+     @Override
+     public String toString() {
+          return "BlockchainAddress{" + "address='" + address + '\'' + ", txs=" + txs
+                  + '}';
+     }
 }

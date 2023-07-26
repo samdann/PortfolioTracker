@@ -1,5 +1,6 @@
 package org.blackchain.service;
 
+import org.blackchain.model.blockchain.com.BlockchainAddress;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -18,5 +19,12 @@ public class BlockchainServiceTest {
 
           //Mockito.verify(string).isEmpty();
           assert (!string.isEmpty());
+     }
+
+     @Test
+     public void testGetBitcoinAddress() {
+          final String address = "1EEQKfgJxZ5Ci1B2wmFsAbrnfxM98SVTat";
+          BlockchainAddress bitcoinAddress = service.getBitcoinAddress(address);
+          assert (bitcoinAddress.getTxs().size() > 0);
      }
 }
