@@ -26,6 +26,7 @@ import org.blackchain.model.coinbase.product.CBProduct;
 import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.model.portfolio.PairPerformance;
+import org.blackchain.model.transaction.EthTransaction;
 import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -161,13 +162,14 @@ public class TransactionService {
 
           EthereumUtils.validateAddress(address);
 
-          final List<Transaction> transactionList = new ArrayList<>();
+          final List<EthTransaction> transactionList = new ArrayList<>();
           // 1 - normal transactions
           List<Tx> txs = etherScanService.getAccountTransactions(api, address);
           txs.forEach(tx -> {
                if (!tx.haveError()) {
-                    Transaction transaction = Transaction.builder().txHash(tx.getHash())
-                            .blockNumber(tx.getBlockNumber())
+
+                    EthTransaction transaction = EthTransaction.builder()
+                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
                             .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
                             .from(tx.getFrom()).to(tx.getTo())
                             .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
@@ -183,8 +185,8 @@ public class TransactionService {
                   api, address);
           internalTxs.forEach(tx -> {
                if (!tx.haveError()) {
-                    Transaction transaction = Transaction.builder().txHash(tx.getHash())
-                            .blockNumber(tx.getBlockNumber())
+                    EthTransaction transaction = EthTransaction.builder()
+                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
                             .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
                             .from(tx.getFrom()).to(tx.getTo())
                             .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
@@ -198,7 +200,7 @@ public class TransactionService {
           // 3 - ERC20 transactions
           List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(api, address);
           erc20Txs.forEach(tx -> {
-               Transaction transaction = Transaction.builder().txHash(tx.getHash())
+               EthTransaction transaction = EthTransaction.builder().txHash(tx.getHash())
                        .blockNumber(tx.getBlockNumber())
                        .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
                        .from(tx.getFrom()).to(tx.getTo())

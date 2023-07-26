@@ -16,7 +16,7 @@ public class BlockchainService {
      public String executeGetRequest() {
           OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-          String url = URL + "bc1q7dmjqztn342e7qyl4tlfyqc8mju8ny7me8vm4n";
+          String url = URL + "3Fb3VStsZfAV3KHLVuFuRNLQLDzgH4BKby";
           Request request = new Request.Builder().url(url)
                   .addHeader("Content-Type", "application/json").build();
 
