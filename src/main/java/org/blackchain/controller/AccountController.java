@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.blackchain.exception.AccountException;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.service.EtherScanService;
 import org.blackchain.service.TransactionService;
@@ -60,11 +61,15 @@ public class AccountController {
                return ResponseEntity.internalServerError().build();
           }
 
-          List<AssetPerformance> assetPerformances =
-                  "1".equals(address) ? DataUtils.getAssetPerformanceList()
-                          : transactionService.getHistoricPerformanceByProduct(api,
-                                  address, granularity);
-          return ResponseEntity.ok().body(assetPerformances);
+          try {
+               List<AssetPerformance> assetPerformances =
+                       "1".equals(address) ? DataUtils.getAssetPerformanceList()
+                               : transactionService.getHistoricPerformanceByProduct(api,
+                                       address, granularity);
+               return ResponseEntity.ok().body(assetPerformances);
+          } catch (AccountException ex) {
+               return ResponseEntity.notFound().build();
+          }
 
      }
 
