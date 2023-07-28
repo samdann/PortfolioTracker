@@ -248,15 +248,14 @@ public class TransactionService {
 
      }
 
-     private String calculateStart(final String granularity, final Instant now) {
+     private String calculateStart(final String granularityKey, final Instant now) {
           int numberItems = 300;
-          ChronoUnit chronoUnit = null;
+          ChronoUnit chronoUnit;
+          Granularity granularity = Granularity.get(granularityKey);
           switch (granularity) {
-               case "ONE_MINUTE" -> chronoUnit = ChronoUnit.MINUTES;
-               case "FIVE_MINUTE" -> {
-                    chronoUnit = ChronoUnit.MINUTES;
-                    numberItems *= 5;
-               }
+               case ONE_MINUTE, FIVE_MINUTE, FIFTEEN_MINUTE, THIRTY_MINUTE ->
+                       chronoUnit = ChronoUnit.MINUTES;
+               case ONE_HOUR, SIX_HOUR -> chronoUnit = ChronoUnit.HOURS;
                default -> chronoUnit = ChronoUnit.DAYS;
           }
           return instantToStringEpoch(now.minus(numberItems, chronoUnit));

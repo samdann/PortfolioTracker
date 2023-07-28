@@ -70,7 +70,5 @@ public class AccountController {
           } catch (AccountException ex) {
                return ResponseEntity.notFound().build();
           }
-
      }
-
 }
