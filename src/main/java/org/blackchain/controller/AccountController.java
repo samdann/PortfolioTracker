@@ -56,11 +56,6 @@ public class AccountController {
              @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address,
              @Parameter(name = "granularity", description = "Candles granularity") @RequestParam(value = "granularity", required = false) final String granularity) {
           EtherScanAPI api = EtherScanAPI.builder().withApiKey(etherscanApiKey).build();
-
-          if ("2".equals(address)) {
-               return ResponseEntity.internalServerError().build();
-          }
-
           try {
                List<AssetPerformance> assetPerformances =
                        "1".equals(address) ? DataUtils.getAssetPerformanceList()
