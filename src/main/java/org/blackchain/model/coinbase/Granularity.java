@@ -3,8 +3,8 @@ package org.blackchain.model.coinbase;
 public enum Granularity {
      UNKNOWN_GRANULARITY("UNKNOWN_GRANULARITY"), ONE_MINUTE("ONE_MINUTE"), FIVE_MINUTE(
              "FIVE_MINUTE"), FIFTEEN_MINUTE("FIFTEEN_MINUTE"), THIRTY_MINUTE(
-             "THIRTY_MINUTE"), ONE_HOUR("ONE_HOUR"), TWO_HOUR("TWO_HOUR"), SIX_HOUR(
-             "SIX_HOUR"), ONE_DAY("ONE_DAY");
+             "THIRTY_MINUTE"), ONE_HOUR("ONE_HOUR"), SIX_HOUR("SIX_HOUR"), ONE_DAY(
+             "ONE_DAY");
 
      private String name;
 
@@ -26,8 +26,8 @@ public enum Granularity {
                     return THIRTY_MINUTE;
                case "ONE_HOUR":
                     return ONE_HOUR;
-               case "TWO_HOUR":
-                    return TWO_HOUR;
+               case "SIX_HOUR":
+                    return SIX_HOUR;
                default:
                     return ONE_DAY;
           }
