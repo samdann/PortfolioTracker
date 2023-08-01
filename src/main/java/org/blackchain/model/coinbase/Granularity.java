@@ -13,24 +13,16 @@ public enum Granularity {
      }
 
      public static Granularity get(String name) {
-          switch (name) {
-               case "UNKNOWN_GRANULARITY":
-                    return UNKNOWN_GRANULARITY;
-               case "ONE_MINUTE":
-                    return ONE_MINUTE;
-               case "FIVE_MINUTE":
-                    return FIVE_MINUTE;
-               case "FIFTEEN_MINUTE":
-                    return FIFTEEN_MINUTE;
-               case "THIRTY_MINUTE":
-                    return THIRTY_MINUTE;
-               case "ONE_HOUR":
-                    return ONE_HOUR;
-               case "SIX_HOUR":
-                    return SIX_HOUR;
-               default:
-                    return ONE_DAY;
-          }
+          return switch (name) {
+               case "UNKNOWN_GRANULARITY" -> UNKNOWN_GRANULARITY;
+               case "ONE_MINUTE" -> ONE_MINUTE;
+               case "FIVE_MINUTE" -> FIVE_MINUTE;
+               case "FIFTEEN_MINUTE" -> FIFTEEN_MINUTE;
+               case "THIRTY_MINUTE" -> THIRTY_MINUTE;
+               case "ONE_HOUR" -> ONE_HOUR;
+               case "SIX_HOUR" -> SIX_HOUR;
+               default -> ONE_DAY;
+          };
      }
 
 }
