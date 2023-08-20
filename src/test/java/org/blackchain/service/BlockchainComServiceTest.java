@@ -1,33 +1,26 @@
 package org.blackchain.service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.blackchain.model.blockchain.com.BlockchainAddress;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.util.ResourceUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BlockchainComServiceTest {
 
+     @Mock
+     HttpService httpService;
      @InjectMocks
      private BlockchainComService service;
-
-     private static String readJsonFile(final String filePath) {
-          Path path = Paths.get(filePath);
-          byte[] bytes = new byte[0];
-          try {
-               bytes = Files.readAllBytes(path);
-          } catch (IOException e) {
-               throw new RuntimeException(e);
-          }
-          return new String(bytes);
-     }
 
      @Test
      public void testGetBitcoinAddressWithMultipleInputsOneOutput() {
@@ -43,14 +36,15 @@ public class BlockchainComServiceTest {
 
      private void testGetBitcoinAddress(final String address) {
 
-          ClassLoader classLoader = this.getClass().getClassLoader();
-          //classLoader.getResourceAsStream()
+          String jsonFile = readJsonFile("src/test/resources/BTCResponse.json");
 
-          String filePath = "BTCResponse.json";
-          String jsonFile = readJsonFile(filePath);
+          Mockito.when(httpService.executeGetRequest(Mockito.anyString()))
+                  .thenReturn(jsonFile);
 
-          Mockito.when(service.executeGetRequest(address)).thenReturn(jsonFile);
           BlockchainAddress bitcoinAddress = service.getBitcoinAddress(address);
+
+          Mockito.verify(httpService).executeGetRequest(Mockito.anyString());
+
           bitcoinAddress.getTxs().forEach(tx -> {
                if (tx.getInputs().size() > 1 && tx.getOutputs().size() == 1) {
                     BigInteger totalValue = BigInteger.valueOf(tx.getInputs().stream()
@@ -67,5 +61,17 @@ public class BlockchainComServiceTest {
                }
 
           });
+     }
+
+     private String readJsonFile(final String filePath) {
+          try {
+               File file = ResourceUtils.getFile(filePath);
+               byte[] bytes = Files.readAllBytes(file.toPath());
+               return new String(bytes);
+          } catch (FileNotFoundException ex) {
+               throw new RuntimeException();
+          } catch (IOException e) {
+               throw new RuntimeException(e);
+          }
      }
 }
