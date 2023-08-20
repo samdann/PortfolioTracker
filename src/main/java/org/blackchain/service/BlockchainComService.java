@@ -2,11 +2,14 @@ package org.blackchain.service;
 
 import com.google.gson.Gson;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.blackchain.model.blockchain.com.BlockchainAddress;
+import org.blackchain.model.blockchain.com.TxOutput;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -20,8 +23,13 @@ public class BlockchainComService {
           Gson gson = new Gson();
           BlockchainAddress blockchainAddress = gson.fromJson(responseString,
                   BlockchainAddress.class);
+          blockchainAddress.getTxs().forEach(tx -> {
+               List<TxOutput> filteredList = tx.getOutputs().stream()
+                       .filter(out -> address.equalsIgnoreCase(out.getAddress()))
+                       .collect(Collectors.toList());
+               tx.setOutputs(filteredList);
+          });
 
-          log.info(blockchainAddress.toString());
           return blockchainAddress;
      }
 

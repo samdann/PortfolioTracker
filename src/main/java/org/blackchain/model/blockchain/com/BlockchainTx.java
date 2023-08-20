@@ -1,6 +1,8 @@
 package org.blackchain.model.blockchain.com;
 
+import com.google.gson.annotations.SerializedName;
 import java.math.BigInteger;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,14 +10,19 @@ import lombok.Data;
 @Builder
 public class BlockchainTx {
 
+     @SerializedName("hash160")
+     private String txHash;
+
+     @SerializedName("block_index")
+     private BigInteger blockNumber;
+
      private BigInteger fee;
      private long time;
      private BigInteger result;
      private BigInteger balance;
+     private List<TxInput> inputs;
 
-     @Override
-     public String toString() {
-          return "BlockchainTx{" + "fee=" + fee + ", time=" + time + ", result=" + result
-                  + ", balance=" + balance + '}';
-     }
+     @SerializedName("out")
+     private List<TxOutput> outputs;
+
 }

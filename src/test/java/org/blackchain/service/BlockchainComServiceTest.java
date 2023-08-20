@@ -13,17 +13,8 @@ public class BlockchainComServiceTest {
      private BlockchainComService service;
 
      @Test
-     public void testExecuteGetRequest() {
-          final String url = "1EEQKfgJxZ5Ci1B2wmFsAbrnfxM98SVTat";
-          String string = service.executeGetRequest(url);
-
-          //Mockito.verify(string).isEmpty();
-          assert (!string.isEmpty());
-     }
-
-     @Test
      public void testGetBitcoinAddress() {
-          final String address = "1EEQKfgJxZ5Ci1B2wmFsAbrnfxM98SVTat";
+          final String address = "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f";
           BlockchainAddress bitcoinAddress = service.getBitcoinAddress(address);
           assert (bitcoinAddress.getTxs().size() > 0);
      }

@@ -4,7 +4,6 @@ import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.TxInternal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,8 +15,6 @@ import org.blackchain.service.EtherScanService;
 import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.web3j.utils.Convert;
-import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @Service
@@ -42,15 +39,10 @@ public class EthereumService {
           List<Tx> txs = etherScanService.getAccountTransactions(api, address);
           txs.forEach(tx -> {
                if (!tx.haveError()) {
-
-                    EthTransaction transaction = EthTransaction.builder()
-                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
-                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                            .from(tx.getFrom()).to(tx.getTo())
-                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                            .tokenName(EthereumUtils.ETHEREUM_NAME)
-                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+                    EthTransaction transaction = EthTransaction.convertToEthTransaction(
+                            tx);
+                    transaction.setTokenName(EthereumUtils.ETHEREUM_NAME);
+                    transaction.setTokenSymbol(EthereumUtils.ETHEREUM_SYMBOL);
                     transactionList.add(transaction);
                }
           });
@@ -60,14 +52,10 @@ public class EthereumService {
                   api, address);
           internalTxs.forEach(tx -> {
                if (!tx.haveError()) {
-                    EthTransaction transaction = EthTransaction.builder()
-                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
-                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                            .from(tx.getFrom()).to(tx.getTo())
-                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                            .tokenName(EthereumUtils.ETHEREUM_NAME)
-                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
+                    EthTransaction transaction = EthTransaction.convertToEthTransaction(
+                            tx);
+                    transaction.setTokenName(EthereumUtils.ETHEREUM_NAME);
+                    transaction.setTokenSymbol(EthereumUtils.ETHEREUM_SYMBOL);
                     transactionList.add(transaction);
                }
           });
@@ -75,15 +63,7 @@ public class EthereumService {
           // 3 - ERC20 transactions
           List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(api, address);
           erc20Txs.forEach(tx -> {
-               EthTransaction transaction = EthTransaction.builder().txHash(tx.getHash())
-                       .blockNumber(tx.getBlockNumber())
-                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo())
-                       .value(EthereumUtils.convertWithTokenDecimal(
-                               tx.getValue().toString(), tx.getTokenDecimal()))
-                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                       .tokenSymbol(tx.getTokenSymbol()).tokenName(tx.getTokenName())
-                       .build();
+               EthTransaction transaction = EthTransaction.convertToEthTransaction(tx);
                transactionList.add(transaction);
           });
 
