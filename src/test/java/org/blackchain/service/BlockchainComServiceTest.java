@@ -7,10 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BlockchainServiceTest {
+public class BlockchainComServiceTest {
 
      @InjectMocks
-     private BlockchainService service;
+     private BlockchainComService service;
 
      @Test
      public void testExecuteGetRequest() {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class BlockchainService {
+public class BlockchainComService {
 
      private static final String URL = "https://blockchain.info/rawaddr/";
 

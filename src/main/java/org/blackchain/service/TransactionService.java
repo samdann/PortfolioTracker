@@ -1,50 +1,36 @@
 package org.blackchain.service;
 
-import static org.blackchain.util.BasicUtils.instantToStringEpoch;
-
 import io.goodforgod.api.etherscan.EtherScanAPI;
-import io.goodforgod.api.etherscan.model.Tx;
-import io.goodforgod.api.etherscan.model.TxErc20;
-import io.goodforgod.api.etherscan.model.TxInternal;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.coinbase.Granularity;
+import org.blackchain.model.Blockchain;
 import org.blackchain.model.coinbase.candle.CBCandle;
-import org.blackchain.model.coinbase.product.CBProduct;
 import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.model.portfolio.PairPerformance;
-import org.blackchain.model.transaction.EthTransaction;
 import org.blackchain.model.transaction.Transaction;
+import org.blackchain.service.blockchain.EthereumService;
+import org.blackchain.util.BasicUtils;
 import org.blackchain.util.EthereumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.web3j.utils.Convert;
-import org.web3j.utils.Convert.Unit;
 
 @Slf4j
 @Service
 public class TransactionService {
 
-     private static final String ETH_USD_PAIR = "ETH-USD";
+     @Autowired
+     EthereumService ethereumService;
 
      @Autowired
-     EtherScanService etherScanService;
-
-     @Autowired
-     CoinbaseService coinbaseService;
+     ProductService productService;
 
      /**
       * Retrieving a list of historic data over a default period of 300 days
@@ -58,6 +44,10 @@ public class TransactionService {
 
           log.info("Retrieving historic performance for address: {}", address);
 
+          // determine which chain to query for transaction data.
+
+          Blockchain addressBlockchain = BasicUtils.getAddressBlockchain(address);
+
           final List<AssetPerformance> assetPerformanceList = new ArrayList<>();
 
           final Map<String, List<HistoricBalance>> historicBalanceMap = getHistoricBalanceMap(
@@ -66,8 +56,8 @@ public class TransactionService {
           historicBalanceMap.forEach((key, value) -> {
 
                // list of historic prices over a defined period for product {key}
-               List<CBCandle> productHistoricData = getProductCandles(key,
-                       granularity).stream()
+               List<CBCandle> productHistoricData = productService.getProductCandles(key,
+                               granularity).stream()
                        .sorted(Comparator.comparingLong(CBCandle::getTimeStamp)).toList();
                // determine the oldest timestamp in the candles
                Optional<Long> minOptional = productHistoricData.stream()
@@ -125,7 +115,7 @@ public class TransactionService {
 
           final Map<String, List<HistoricBalance>> result = new HashMap<>();
 
-          final Map<String, List<Transaction>> transactionsByToken = getTransactionsByToken(
+          final Map<String, List<Transaction>> transactionsByToken = ethereumService.getTransactionsByToken(
                   api, address);
           transactionsByToken.forEach((key, value) -> {
                final List<HistoricBalance> balanceList = new ArrayList<>();
@@ -149,115 +139,4 @@ public class TransactionService {
           return result;
      }
 
-     /**
-      * Groups all transactions of a given address by token name.
-      *
-      * @param api     EtherScan API
-      * @param address Wallet address on Ethereum
-      * @return Map containing all transactions by token
-      */
-     private Map<String, List<Transaction>> getTransactionsByToken(final EtherScanAPI api,
-             final String address) {
-          log.info("Retrieving all ETH transactions for address: {}", address);
-
-          EthereumUtils.validateAddress(address);
-
-          final List<EthTransaction> transactionList = new ArrayList<>();
-          // 1 - normal transactions
-          List<Tx> txs = etherScanService.getAccountTransactions(api, address);
-          txs.forEach(tx -> {
-               if (!tx.haveError()) {
-
-                    EthTransaction transaction = EthTransaction.builder()
-                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
-                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                            .from(tx.getFrom()).to(tx.getTo())
-                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                            .tokenName(EthereumUtils.ETHEREUM_NAME)
-                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
-                    transactionList.add(transaction);
-               }
-          });
-
-          // 2 - internal transactions
-          List<TxInternal> internalTxs = etherScanService.getAccountInternalTransactions(
-                  api, address);
-          internalTxs.forEach(tx -> {
-               if (!tx.haveError()) {
-                    EthTransaction transaction = EthTransaction.builder()
-                            .txHash(tx.getHash()).blockNumber(tx.getBlockNumber())
-                            .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                            .from(tx.getFrom()).to(tx.getTo())
-                            .value(Convert.fromWei(tx.getValue().toString(), Unit.ETHER))
-                            .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                            .tokenName(EthereumUtils.ETHEREUM_NAME)
-                            .tokenSymbol(EthereumUtils.ETHEREUM_SYMBOL).build();
-                    transactionList.add(transaction);
-               }
-          });
-
-          // 3 - ERC20 transactions
-          List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(api, address);
-          erc20Txs.forEach(tx -> {
-               EthTransaction transaction = EthTransaction.builder().txHash(tx.getHash())
-                       .blockNumber(tx.getBlockNumber())
-                       .timestamp(Timestamp.valueOf(tx.getTimeStamp()).getTime())
-                       .from(tx.getFrom()).to(tx.getTo())
-                       .value(EthereumUtils.convertWithTokenDecimal(
-                               tx.getValue().toString(), tx.getTokenDecimal()))
-                       .gas(tx.getGas().asWei()).gasUsed(tx.getGasUsed().asWei())
-                       .tokenSymbol(tx.getTokenSymbol()).tokenName(tx.getTokenName())
-                       .build();
-               transactionList.add(transaction);
-          });
-
-          final Map<String, List<Transaction>> transactionsByToken = new HashMap<>();
-          transactionList.forEach(tx -> {
-               if (EthereumUtils.SUPPORTED_TOKENS.contains(tx.getTokenSymbol())) {
-                    transactionsByToken.putIfAbsent(tx.getTokenSymbol(),
-                            new ArrayList<>());
-                    transactionsByToken.get(tx.getTokenSymbol()).add(tx);
-               }
-
-          });
-
-          return transactionsByToken;
-     }
-
-     private List<CBCandle> getProductCandles(final String ticker,
-             final String granularity) {
-
-          List<CBProduct> coinbaseProducts = coinbaseService.getCoinbaseProducts(ticker);
-          final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
-                  : coinbaseProducts.get(0).getProduct_id();
-
-          // initializing the start & end
-          Instant now = Instant.now();
-          String end = instantToStringEpoch(now);
-          String start = calculateStart(granularity, now);
-
-          // building the queryParams
-          Map<String, String> queryParams = new LinkedHashMap<>();
-          queryParams.put("start", start);
-          queryParams.put("end", end);
-          queryParams.put("granularity", StringUtils.hasLength(granularity) ? granularity
-                  : Granularity.ONE_DAY.toString());
-
-          return coinbaseService.getProductHistoricData(productId, queryParams);
-
-     }
-
-     private String calculateStart(final String granularityKey, final Instant now) {
-          int numberItems = 300;
-          ChronoUnit chronoUnit;
-          Granularity granularity = Granularity.get(granularityKey);
-          switch (granularity) {
-               case ONE_MINUTE, FIVE_MINUTE, FIFTEEN_MINUTE, THIRTY_MINUTE ->
-                       chronoUnit = ChronoUnit.MINUTES;
-               case ONE_HOUR, SIX_HOUR -> chronoUnit = ChronoUnit.HOURS;
-               default -> chronoUnit = ChronoUnit.DAYS;
-          }
-          return instantToStringEpoch(now.minus(numberItems, chronoUnit));
-     }
 }

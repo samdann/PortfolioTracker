@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.blackchain.exception.AccountException;
 
 public class EthereumUtils {
 
@@ -17,11 +16,8 @@ public class EthereumUtils {
              "ETH");
      private static final Pattern ADDRESS_PATTERN = Pattern.compile("0x[a-zA-Z0-9]{40}");
 
-     public static void validateAddress(String address) {
-          if (isNotAddress(address)) {
-               throw new AccountException(
-                       "Address [" + address + "] is not Ethereum based.");
-          }
+     public static boolean isEthereumAddress(final String address) {
+          return isNotAddress(address);
      }
 
      private static boolean isNotAddress(String value) {

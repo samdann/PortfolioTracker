@@ -112,7 +112,6 @@ public class CoinbaseService {
                log.error("Error reading response body: {}", e.getMessage());
                return null;
           }
-          log.info(responseString);
           return responseString;
      }
 
