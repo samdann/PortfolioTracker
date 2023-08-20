@@ -1,0 +1,106 @@
+{
+  "hash160": "9002168bcc38f64a7db3609063a80d3db6a021ff",
+  "address": "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f",
+  "n_tx": 1,
+  "n_unredeemed": 1,
+  "total_received": 1314500,
+  "total_sent": 0,
+  "final_balance": 1314500,
+  "txs": [
+    {
+      "hash": "a2a3a3bf90686d727d573d55f6d363f724f67a37f8041d1e992303029840d6d9",
+      "ver": 2,
+      "vin_sz": 3,
+      "vout_sz": 1,
+      "size": 556,
+      "weight": 1255,
+      "fee": 32174,
+      "relayed_by": "0.0.0.0",
+      "lock_time": 804057,
+      "tx_index": 7664455357841508,
+      "double_spend": false,
+      "time": 1692533670,
+      "block_index": 804058,
+      "block_height": 804058,
+      "inputs": [
+        {
+          "sequence": 4294967293,
+          "witness": "024730440220154889291019e6612ab63248027c8f5af12d3862cb55e40abe2b97dcbed54c46022055650e435bf2eae1ca7b715e9e9681c305ffe47b6ea1e4377ce875413b28cc6d0121030fcb753851ced8041125b6ece0035c18f6b9d3e4a3c1777c5cced4bb946746bd",
+          "script": "160014ec2b7ad22b6e63b2451e11df85affc9d9491c70d",
+          "index": 0,
+          "prev_out": {
+            "addr": "3GXq2VCkFz9jPJGr7nN8Rz3w1BTKVGB7wW",
+            "n": 1,
+            "script": "a914a2cd0bda68786561013a95c8cfcc9299a399ed6887",
+            "spending_outpoints": [
+              {
+                "n": 0,
+                "tx_index": 7664455357841508
+              }
+            ],
+            "spent": true,
+            "tx_index": 6241492729718295,
+            "type": 0,
+            "value": 905430
+          }
+        },
+        {
+          "sequence": 4294967293,
+          "witness": "02473044022010cb832e0406f36c9a103cfd0718ad86b47e21a82092378a39a395f5a35bc5f302203216ef1e00e516f957208a0f85c7d591f6732cf247cff4a0cf1b08a8c71d7dcd012102762c10fdefc93aeaed06ff63fbacb45e39c0bb07917432be2aedad179397750f",
+          "script": "160014df5f17ec3aeb8c6e18fa22dae8d2db4976aed8a0",
+          "index": 1,
+          "prev_out": {
+            "addr": "32TCpAa7qJaEzoWb5ogghLnq7PMFfhVys5",
+            "n": 0,
+            "script": "a914085b6492a938e7069a3c7d9f3374b24a62cee98287",
+            "spending_outpoints": [
+              {
+                "n": 1,
+                "tx_index": 7664455357841508
+              }
+            ],
+            "spent": true,
+            "tx_index": 7562226556724820,
+            "type": 0,
+            "value": 407324
+          }
+        },
+        {
+          "sequence": 4294967293,
+          "witness": "024730440220035f25185cff596cf61c28e98e992fa0329d6b5504582591cbbd4309348306b50220722bf343f3f3708972e83058e9d690d79d4ef5ad911d09c87fe451e08a2cc36c012103ed00020243f4cac4fde4c5d7cbd517420271ec439a0f330c4c951cc8ed8d5310",
+          "script": "16001441c872b08764e52a13b3eae435477d67b81f1b84",
+          "index": 2,
+          "prev_out": {
+            "addr": "37f3aZUZDZvbQFanKUb7gTPovrvzLEo1Hp",
+            "n": 0,
+            "script": "a91441714e0048121aba5680436fc8e75b083ab7300487",
+            "spending_outpoints": [
+              {
+                "n": 2,
+                "tx_index": 7664455357841508
+              }
+            ],
+            "spent": true,
+            "tx_index": 6170259029037811,
+            "type": 0,
+            "value": 33920
+          }
+        }
+      ],
+      "out": [
+        {
+          "type": 0,
+          "spent": false,
+          "value": 1314500,
+          "spending_outpoints": [],
+          "n": 0,
+          "tx_index": 7664455357841508,
+          "script": "00149002168bcc38f64a7db3609063a80d3db6a021ff",
+          "addr": "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f"
+        }
+      ],
+      "result": 1314500,
+      "balance": 1314500
+    }
+  ]
+}

@@ -25,7 +25,8 @@ public class BitcoinService {
           final Map<String, List<Transaction>> result = new HashMap<>();
           final List<Transaction> resultList = new ArrayList<>(
                   blockchainComService.getBitcoinAddress(address).getTxs().stream()
-                          .map(BtcTransaction::convertToBtcTransaction).toList());
+                          .map(tx -> BtcTransaction.convertToBtcTransaction(tx, address))
+                          .toList());
 
           result.put(EthereumUtils.BITCOIN_SYMBOL, resultList);
           log.info("");
