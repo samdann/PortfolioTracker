@@ -32,6 +32,9 @@ dependencies {
     //Etherscan
     implementation 'com.github.goodforgod:java-etherscan-api:2.0.0'
 
+    // Bitcoin library
+    implementation 'org.bitcoinj:bitcoinj-core:0.15.10'
+
     //Other
     implementation 'commons-codec:commons-codec:1.15'
 
