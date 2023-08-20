@@ -11,7 +11,6 @@ public class TxOutput {
 
      @SerializedName("addr")
      private String address;
-     
      private BigInteger value;
 
 }

@@ -18,7 +18,9 @@ public class BlockchainTx {
 
      private BigInteger fee;
      private long time;
-     private BigInteger result;
+
+     @SerializedName("result")
+     private BigInteger value;
      private BigInteger balance;
      private List<TxInput> inputs;
 

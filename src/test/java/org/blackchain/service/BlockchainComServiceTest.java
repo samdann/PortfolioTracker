@@ -14,7 +14,7 @@ public class BlockchainComServiceTest {
 
      @Test
      public void testGetBitcoinAddress() {
-          final String address = "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f";
+          final String address = "bc1qf6k4eh5d3zxausq8hc5xynfcp0waee2c7sc86c";
           BlockchainAddress bitcoinAddress = service.getBitcoinAddress(address);
           assert (bitcoinAddress.getTxs().size() > 0);
      }
