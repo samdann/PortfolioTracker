@@ -10,6 +10,11 @@ public class EthereumUtils {
      // Ethereum
      public static final String ETHEREUM_NAME = "Ethereum";
      public static final String ETHEREUM_SYMBOL = "ETH";
+
+     // Bitcoin
+     public static final String BITCOIN_NAME = "Bitcoin";
+     public static final String BITCOIN_SYMBOL = "BTC";
+
      //General
      public static final String SUPPORTED_CURRENCIES = "USD";
      public static final List<String> SUPPORTED_TOKENS = Arrays.asList("MATIC", "USDT",

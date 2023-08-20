@@ -32,7 +32,7 @@ public class EthereumService {
       */
      public Map<String, List<Transaction>> getTransactionsByToken(final EtherScanAPI api,
              final String address) {
-          log.info("Retrieving all ETH transactions for address: {}", address);
+          log.info("{} : retrieving all Ethereum transactions", address);
 
           final List<EthTransaction> transactionList = new ArrayList<>();
           // 1 - normal transactions
@@ -76,6 +76,9 @@ public class EthereumService {
                }
 
           });
+          transactionsByToken.forEach(
+                  (key, value) -> log.info("{} : found {} transactions for :{},", address,
+                          value.size(), key));
 
           return transactionsByToken;
      }
