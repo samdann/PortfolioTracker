@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.exception.AccountException;
+import org.blackchain.model.coinbase.Granularity;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.service.EtherScanService;
 import org.blackchain.service.TransactionService;
@@ -46,7 +47,7 @@ public class AccountController {
              "application/json"}, method = RequestMethod.GET)
      public ResponseEntity<List<AssetPerformance>> getHistoricPerformance(
              @Parameter(name = "address", description = "Wallet Address") @RequestParam(value = "address", required = true) final String address,
-             @Parameter(name = "granularity", description = "Candles granularity") @RequestParam(value = "granularity", required = false) final String granularity) {
+             @Parameter(name = "granularity", description = "Candles granularity") @RequestParam(value = "granularity", required = false) final Granularity granularity) {
           try {
                List<AssetPerformance> assetPerformances =
                        "1".equals(address) ? DataUtils.getAssetPerformanceList()

@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.blackchain.model.BlockChain;
+import org.blackchain.model.coinbase.Granularity;
 import org.blackchain.model.coinbase.candle.CBCandle;
 import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.AssetPerformance;
@@ -42,7 +43,7 @@ public class TransactionService {
       * @return List of PairPerformance object containing all historic data
       */
      public List<AssetPerformance> getHistoricPerformanceByProduct(final String address,
-             final String granularity) {
+             final Granularity granularity) {
 
           log.info("Retrieving historic performance for address: {}", address);
 

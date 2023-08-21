@@ -25,7 +25,7 @@ public class ProductService {
      CoinbaseService coinbaseService;
 
      public List<CBCandle> getProductCandles(final String ticker,
-             final String granularity) {
+             final Granularity granularity) {
 
           List<CBProduct> coinbaseProducts = coinbaseService.getCoinbaseProducts(ticker);
           final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
@@ -34,14 +34,15 @@ public class ProductService {
           // initializing the start & end
           Instant now = Instant.now();
           String end = instantToStringEpoch(now);
-          String start = calculateStart(granularity, now);
+          String start = calculateStart(granularity.getName(), now);
 
           // building the queryParams
           Map<String, String> queryParams = new LinkedHashMap<>();
           queryParams.put("start", start);
           queryParams.put("end", end);
-          queryParams.put("granularity", StringUtils.hasLength(granularity) ? granularity
-                  : Granularity.ONE_DAY.toString());
+          queryParams.put("granularity",
+                  StringUtils.hasLength(granularity.getName()) ? granularity.getName()
+                          : Granularity.ONE_DAY.toString());
 
           return coinbaseService.getProductHistoricData(productId, queryParams);
 

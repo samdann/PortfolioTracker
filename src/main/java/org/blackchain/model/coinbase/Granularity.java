@@ -25,4 +25,8 @@ public enum Granularity {
           };
      }
 
+     public String getName() {
+          return name;
+     }
+
 }
