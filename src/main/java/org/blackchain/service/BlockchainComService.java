@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BlockchainComService {
 
-     private static final String URL = "https://blockchain.info/rawaddr/";
+     public static final String URL = "https://blockchain.info/rawaddr/";
 
      @Autowired
      HttpService httpService;

@@ -19,27 +19,31 @@ public class BlockchainComServiceTest {
 
      @Mock
      HttpService httpService;
+
      @InjectMocks
      private BlockchainComService service;
 
      @Test
-     public void testGetBitcoinAddressWithMultipleInputsOneOutput() {
-          final String address = "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f";
-          testGetBitcoinAddress(address);
+     public void testGetBitcoinAddressWithOneInputMultipleOutputs() {
+          final String address = "bc1qf6k4eh5d3zxausq8hc5xynfcp0waee2c7sc86c";
+          final String jsonFilePath = ("src/test/resources/BTCResponse01.json");
+          testGetBitcoinAddress(address, jsonFilePath);
      }
 
      @Test
-     public void testGetBitcoinAddressWithOneInputMultipleOutputs() {
-          final String address = "bc1qf6k4eh5d3zxausq8hc5xynfcp0waee2c7sc86c";
-          testGetBitcoinAddress(address);
+     public void testGetBitcoinAddressWithMultipleInputsOneOutput() {
+          final String address = "bc1qjqppdz7v8rmy5ldnvzgx82qd8km2qg0ld7795f";
+          final String jsonFilePath = ("src/test/resources/BTCResponse02.json");
+          testGetBitcoinAddress(address, jsonFilePath);
      }
 
-     private void testGetBitcoinAddress(final String address) {
+     private void testGetBitcoinAddress(final String address, final String jsonFilePath) {
 
-          String jsonFile = readJsonFile("src/test/resources/BTCResponse.json");
+          String jsonFile = readJsonFile(jsonFilePath);
 
-          Mockito.when(httpService.executeGetRequest(Mockito.anyString()))
-                  .thenReturn(jsonFile);
+          String url = BlockchainComService.URL + address;
+
+          Mockito.when(httpService.executeGetRequest(url)).thenReturn(jsonFile);
 
           BlockchainAddress bitcoinAddress = service.getBitcoinAddress(address);
 
@@ -54,10 +58,12 @@ public class BlockchainComServiceTest {
                }
 
                if (tx.getInputs().size() == 1 && tx.getOutputs().size() > 1) {
-                    BigInteger totalValue = BigInteger.valueOf(tx.getOutputs().stream()
-                            .map(txOutput -> txOutput.getValue().intValue())
-                            .reduce(0, Integer::sum));
-                    assert (tx.getValue().equals(totalValue.subtract(tx.getFee())));
+                    long outputsValue = tx.getOutputs().stream()
+                            .map(txOutput -> txOutput.getValue().longValue())
+                            .reduce(0l, Long::sum);
+                    long txInputValue = tx.getInputs().get(0).getPreviousOutput()
+                            .getValue().longValue();
+                    assert (txInputValue == outputsValue + tx.getFee().longValue());
                }
 
           });
