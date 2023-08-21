@@ -3,7 +3,6 @@ package org.blackchain.service;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import org.blackchain.model.blockchain.com.BlockchainAddress;
 import org.junit.Test;
@@ -51,10 +50,11 @@ public class BlockchainComServiceTest {
 
           bitcoinAddress.getTxs().forEach(tx -> {
                if (tx.getInputs().size() > 1 && tx.getOutputs().size() == 1) {
-                    BigInteger totalValue = BigInteger.valueOf(tx.getInputs().stream()
+                    long inputsValue = tx.getInputs().stream()
                             .map(txInput -> txInput.getPreviousOutput().getValue()
-                                    .intValue()).reduce(0, Integer::sum));
-                    assert (tx.getValue().equals(totalValue.subtract(tx.getFee())));
+                                    .longValue()).reduce(0l, Long::sum);
+                    assert (inputsValue == tx.getValue().longValue() + tx.getFee()
+                            .longValue());
                }
 
                if (tx.getInputs().size() == 1 && tx.getOutputs().size() > 1) {

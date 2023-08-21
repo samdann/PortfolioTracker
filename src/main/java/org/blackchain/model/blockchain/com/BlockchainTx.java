@@ -1,6 +1,7 @@
 package org.blackchain.model.blockchain.com;
 
 import com.google.gson.annotations.SerializedName;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import lombok.Builder;
@@ -16,12 +17,12 @@ public class BlockchainTx {
      @SerializedName("block_index")
      private BigInteger blockNumber;
 
-     private BigInteger fee;
+     private BigDecimal fee;
      private long time;
 
      @SerializedName("result")
-     private BigInteger value;
-     private BigInteger balance;
+     private BigDecimal value;
+     private BigDecimal balance;
      private List<TxInput> inputs;
 
      @SerializedName("out")

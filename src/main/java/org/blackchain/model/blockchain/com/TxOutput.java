@@ -1,7 +1,7 @@
 package org.blackchain.model.blockchain.com;
 
 import com.google.gson.annotations.SerializedName;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,6 +11,6 @@ public class TxOutput {
 
      @SerializedName("addr")
      private String address;
-     private BigInteger value;
+     private BigDecimal value;
 
 }

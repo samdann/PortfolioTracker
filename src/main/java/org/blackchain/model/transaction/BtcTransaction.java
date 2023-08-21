@@ -1,7 +1,6 @@
 package org.blackchain.model.transaction;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -16,7 +15,7 @@ import org.blackchain.model.blockchain.com.TxOutput;
 public class BtcTransaction extends Transaction {
 
      private List<String> from;
-     private BigInteger fee;
+     private BigDecimal fee;
 
      public static BtcTransaction convertToBtcTransaction(final BlockchainTx tx,
              final String address) {
