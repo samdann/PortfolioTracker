@@ -1,6 +1,5 @@
 package org.blackchain.service;
 
-import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.error.EtherScanException;
 import io.goodforgod.api.etherscan.error.EtherScanRateLimitException;
 import io.goodforgod.api.etherscan.model.Tx;
@@ -11,6 +10,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -19,19 +19,21 @@ public class EtherScanService {
 
      private static final long RETRY_TIME = 5000;
 
-     public List<Tx> getAccountTransactions(final EtherScanAPI api,
-             final String address) {
+     @Autowired
+     ApiKeyService apiKeyService;
+
+     public List<Tx> getAccountTransactions(final String address) {
           log.info("Retrieving normal transactions for address {}", address);
           final List<Tx> txs = new ArrayList<>();
           try {
-               txs.addAll(api.account().txs(address));
+               txs.addAll(apiKeyService.getEtherScanAPI().account().txs(address));
           } catch (EtherScanException ex) {
                if (ex instanceof EtherScanRateLimitException) {
                     log.warn("API Rate limit reached. Trying again in 5 seconds.");
                     new Timer().schedule(new TimerTask() {
                          @Override
                          public void run() {
-                              txs.addAll(getAccountTransactions(api, address));
+                              txs.addAll(getAccountTransactions(address));
                          }
                     }, RETRY_TIME);
                }
@@ -41,19 +43,18 @@ public class EtherScanService {
           return txs;
      }
 
-     public List<TxInternal> getAccountInternalTransactions(final EtherScanAPI api,
-             final String address) {
+     public List<TxInternal> getAccountInternalTransactions(final String address) {
           log.info("Retrieving internal transactions for address {}", address);
           final List<TxInternal> txs = new ArrayList<>();
           try {
-               txs.addAll(api.account().txsInternal(address));
+               txs.addAll(apiKeyService.getEtherScanAPI().account().txsInternal(address));
           } catch (EtherScanException ex) {
                if (ex instanceof EtherScanRateLimitException) {
                     log.warn("API Rate limit reached. Trying again in 5 seconds.");
                     new Timer().schedule(new TimerTask() {
                          @Override
                          public void run() {
-                              txs.addAll(getAccountInternalTransactions(api, address));
+                              txs.addAll(getAccountInternalTransactions(address));
                          }
                     }, RETRY_TIME);
                }
@@ -63,19 +64,19 @@ public class EtherScanService {
           return txs;
      }
 
-     public List<TxErc20> getERC20Transactions(final EtherScanAPI api,
-             final String address) {
+     public List<TxErc20> getERC20Transactions(final String address) {
           log.info("Retrieving ERC20 transactions for address {}", address);
           final List<TxErc20> txErc20s = new ArrayList<>();
           try {
-               txErc20s.addAll(api.account().txsErc20(address));
+               txErc20s.addAll(
+                       apiKeyService.getEtherScanAPI().account().txsErc20(address));
           } catch (EtherScanException ex) {
                if (ex instanceof EtherScanRateLimitException) {
                     log.warn("API Rate limit reached. Trying again in 5 seconds.");
                     new Timer().schedule(new TimerTask() {
                          @Override
                          public void run() {
-                              txErc20s.addAll(getERC20Transactions(api, address));
+                              txErc20s.addAll(getERC20Transactions(address));
                          }
                     }, RETRY_TIME);
                }

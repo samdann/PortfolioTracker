@@ -14,7 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.util.ResourceUtils;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BlockchainComServiceTest {
+public class BlockChainComServiceTest {
 
      @Mock
      HttpService httpService;

@@ -4,7 +4,7 @@ import java.time.Instant;
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
 import org.bitcoinj.params.MainNetParams;
-import org.blackchain.model.Blockchain;
+import org.blackchain.model.BlockChain;
 
 public class BasicUtils {
 
@@ -12,13 +12,13 @@ public class BasicUtils {
           return String.valueOf(time.toEpochMilli() / 1000);
      }
 
-     public static Blockchain getAddressBlockchain(final String address) {
+     public static BlockChain getAddressBlockchain(final String address) {
           if (EthereumUtils.isEthereumAddress(address)) {
-               return Blockchain.ETHEREUM;
+               return BlockChain.ETHEREUM;
           } else if (isBitcoinAddress(address)) {
-               return Blockchain.BITCOIN;
+               return BlockChain.BITCOIN;
           } else {
-               return Blockchain.NONE;
+               return BlockChain.UNKNOWN;
           }
      }
 

@@ -22,11 +22,8 @@ public class EthereumUtils {
      private static final Pattern ADDRESS_PATTERN = Pattern.compile("0x[a-zA-Z0-9]{40}");
 
      public static boolean isEthereumAddress(final String address) {
-          return isNotAddress(address);
-     }
+          return !isEmpty(address) && ADDRESS_PATTERN.matcher(address).matches();
 
-     private static boolean isNotAddress(String value) {
-          return isEmpty(value) || !ADDRESS_PATTERN.matcher(value).matches();
      }
 
      private static boolean isEmpty(String value) {

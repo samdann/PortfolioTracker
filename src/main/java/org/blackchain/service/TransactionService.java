@@ -1,6 +1,5 @@
 package org.blackchain.service;
 
-import io.goodforgod.api.etherscan.EtherScanAPI;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -10,12 +9,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.blackchain.model.Blockchain;
+import org.blackchain.model.BlockChain;
 import org.blackchain.model.coinbase.candle.CBCandle;
 import org.blackchain.model.etherscan.HistoricBalance;
 import org.blackchain.model.portfolio.AssetPerformance;
 import org.blackchain.model.portfolio.PairPerformance;
 import org.blackchain.model.transaction.Transaction;
+import org.blackchain.service.blockchain.BitcoinService;
 import org.blackchain.service.blockchain.EthereumService;
 import org.blackchain.util.BasicUtils;
 import org.blackchain.util.EthereumUtils;
@@ -30,28 +30,26 @@ public class TransactionService {
      EthereumService ethereumService;
 
      @Autowired
+     BitcoinService bitcoinService;
+
+     @Autowired
      ProductService productService;
 
      /**
       * Retrieving a list of historic data over a default period of 300 days
       *
-      * @param api     EtherScan API
       * @param address Wallet address on Ethereum
       * @return List of PairPerformance object containing all historic data
       */
-     public List<AssetPerformance> getHistoricPerformanceByProduct(final EtherScanAPI api,
-             final String address, final String granularity) {
+     public List<AssetPerformance> getHistoricPerformanceByProduct(final String address,
+             final String granularity) {
 
           log.info("Retrieving historic performance for address: {}", address);
-
-          // determine which chain to query for transaction data.
-
-          Blockchain addressBlockchain = BasicUtils.getAddressBlockchain(address);
 
           final List<AssetPerformance> assetPerformanceList = new ArrayList<>();
 
           final Map<String, List<HistoricBalance>> historicBalanceMap = getHistoricBalanceMap(
-                  api, address);
+                  address);
 
           historicBalanceMap.forEach((key, value) -> {
 
@@ -111,12 +109,22 @@ public class TransactionService {
       * Builds a balance for a given token based on the in / out transactions value.
       */
      private Map<String, List<HistoricBalance>> getHistoricBalanceMap(
-             final EtherScanAPI api, final String address) {
+             final String address) {
+
+          BlockChain addressBlockChain = BasicUtils.getAddressBlockchain(address);
 
           final Map<String, List<HistoricBalance>> result = new HashMap<>();
 
-          final Map<String, List<Transaction>> transactionsByToken = ethereumService.getTransactionsByToken(
-                  api, address);
+          final Map<String, List<Transaction>> transactionsByToken = new HashMap<>();
+
+          switch (addressBlockChain) {
+               case ETHEREUM -> transactionsByToken.putAll(
+                       ethereumService.getTransactionsByToken(address));
+               case BITCOIN -> transactionsByToken.putAll(
+                       bitcoinService.getTransactionsByToken(address));
+               case UNKNOWN -> log.warn("Address: {} blockchain not recognized", address);
+          }
+
           transactionsByToken.forEach((key, value) -> {
                final List<HistoricBalance> balanceList = new ArrayList<>();
                List<Transaction> sortedList = value.stream()

@@ -1,6 +1,5 @@
 package org.blackchain.service.blockchain;
 
-import io.goodforgod.api.etherscan.EtherScanAPI;
 import io.goodforgod.api.etherscan.model.Tx;
 import io.goodforgod.api.etherscan.model.TxErc20;
 import io.goodforgod.api.etherscan.model.TxInternal;
@@ -26,17 +25,15 @@ public class EthereumService {
      /**
       * Groups all transactions of a given address by token name.
       *
-      * @param api     EtherScan API
       * @param address Wallet address on Ethereum
       * @return Map containing all transactions by token
       */
-     public Map<String, List<Transaction>> getTransactionsByToken(final EtherScanAPI api,
-             final String address) {
+     public Map<String, List<Transaction>> getTransactionsByToken(final String address) {
           log.info("{} : retrieving all Ethereum transactions", address);
 
           final List<EthTransaction> transactionList = new ArrayList<>();
           // 1 - normal transactions
-          List<Tx> txs = etherScanService.getAccountTransactions(api, address);
+          List<Tx> txs = etherScanService.getAccountTransactions(address);
           txs.forEach(tx -> {
                if (!tx.haveError()) {
                     EthTransaction transaction = EthTransaction.convertToEthTransaction(
@@ -49,7 +46,7 @@ public class EthereumService {
 
           // 2 - internal transactions
           List<TxInternal> internalTxs = etherScanService.getAccountInternalTransactions(
-                  api, address);
+                  address);
           internalTxs.forEach(tx -> {
                if (!tx.haveError()) {
                     EthTransaction transaction = EthTransaction.convertToEthTransaction(
@@ -61,7 +58,7 @@ public class EthereumService {
           });
 
           // 3 - ERC20 transactions
-          List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(api, address);
+          List<TxErc20> erc20Txs = etherScanService.getERC20Transactions(address);
           erc20Txs.forEach(tx -> {
                EthTransaction transaction = EthTransaction.convertToEthTransaction(tx);
                transactionList.add(transaction);
