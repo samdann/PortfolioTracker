@@ -20,9 +20,7 @@ public class BlockchainComService {
           String responseString = httpService.executeGetRequest(url);
 
           Gson gson = new Gson();
-          BlockchainAddress blockchainAddress = gson.fromJson(responseString,
-                  BlockchainAddress.class);
-          return blockchainAddress;
+          return gson.fromJson(responseString, BlockchainAddress.class);
      }
 
 }
