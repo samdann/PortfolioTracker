@@ -33,6 +33,7 @@ public class HttpService {
                log.error("Error reading response body: {}", e.getMessage());
                return null;
           }
+          // TODO deal with responseString: "error code: 1015"
           return responseString;
      }
 
