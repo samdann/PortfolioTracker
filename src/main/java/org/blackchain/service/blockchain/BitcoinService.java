@@ -29,7 +29,8 @@ public class BitcoinService {
                           .toList());
 
           result.put(EthereumUtils.BITCOIN_SYMBOL, resultList);
-          log.info("");
+          log.info("Retrieved {} transactions for address: {}", resultList.size(),
+                  address);
 
           return result;
      }

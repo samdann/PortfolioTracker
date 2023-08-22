@@ -64,11 +64,15 @@ public class CoinbaseService {
                                && product.getProduct_id()
                                .endsWith(EthereumUtils.SUPPORTED_CURRENCIES)).toList());
           }
+
+          log.info("...found {} products with ticker {}", result.size(), ticker);
           return result;
      }
 
      public List<CBCandle> getProductHistoricData(final String productId,
              final Map<String, String> queryParams) {
+          log.info("Retrieving historic price data for product: {}", productId);
+
           final String requestPath = COINBASE_PATH_PRODUCT_CANDLES.replace("{product_id}",
                   productId);
           String requestParams = UrlUtils.addQueryParams(queryParams);
@@ -78,6 +82,7 @@ public class CoinbaseService {
           Gson gson = new Gson();
           CBCandles candleList = gson.fromJson(responseString, CBCandles.class);
 
+          log.info("...retrieved {} candles", candleList.getCandles().size());
           return candleList.getCandles();
      }
 

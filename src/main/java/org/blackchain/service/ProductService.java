@@ -26,6 +26,8 @@ public class ProductService {
 
      public List<CBCandle> getProductCandles(final String ticker,
              final Granularity granularity) {
+          log.info("Reading prices for product: {} with a granularity of {}", ticker,
+                  granularity.getName());
 
           List<CBProduct> coinbaseProducts = coinbaseService.getCoinbaseProducts(ticker);
           final String productId = coinbaseProducts.isEmpty() ? ETH_USD_PAIR
